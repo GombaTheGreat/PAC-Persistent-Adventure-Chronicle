@@ -1,7 +1,7 @@
 # PAC — Persistent Adventure Chronicle
 
 <p align="center">
-  <img src="https://i.ibb.co/jkKXWPGR/Gomba-PAC.png" alt="PAC Logo" width="180" />
+  <img src="https://i.ibb.co/Hf65Df1p/Gomba-PAC.png" alt="PAC Logo" width="180" />
 </p>
 
 > A SillyTavern extension that gives your AI characters real, lasting memory across every chat session.
