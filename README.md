@@ -208,7 +208,7 @@ SillyTavern is brilliant for roleplay and collaborative storytelling with AI. Bu
 
 PAC is what I wanted to exist: something that quietly watches your story unfold, pulls out what matters, and makes sure your characters actually know you the next time you talk to them. The AI you've been building a campaign with should know you're the Champion of the Iron Circle before you have to tell it again.
 
-It's made for people who want their AI adventures to feel like they're going somewhere - where the characters you care about remember the journey.
+I made this for people who want their AI adventures to feel like they're going somewhere — where the characters you care about remember the journey.
 
 ---
 
