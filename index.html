@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PAC — Persistent Adventure Chronicle</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0e14;
+      --bg2:       #13141e;
+      --bg3:       #1a1c2a;
+      --bg4:       #21243a;
+      --border:    #2a2d45;
+      --gold:      #c8941f;
+      --gold-light:#e8b84b;
+      --gold-dim:  #7a5a12;
+      --purple:    #7c5cbf;
+      --purple-light: #9b7ee0;
+      --purple-dim:#3a2970;
+      --red:       #b04040;
+      --green:     #3a8a5a;
+      --text:      #ddd8cc;
+      --text-muted:#7880a0;
+      --text-dim:  #4a5070;
+      --radius:    8px;
+      --radius-lg: 14px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    a { color: var(--gold-light); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Layout ───────────────────────────────────────────── */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    section {
+      padding: 80px 0;
+    }
+
+    section + section {
+      border-top: 1px solid var(--border);
+    }
+
+    h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--gold-light);
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    p { margin-bottom: 1em; }
+    p:last-child { margin-bottom: 0; }
+
+    .section-intro {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 640px;
+      margin-bottom: 40px;
+    }
+
+    /* ── Nav ──────────────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13, 14, 20, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+    }
+
+    .nav-brand {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--gold-light);
+      letter-spacing: 0.04em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      transition: color 0.15s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    /* ── Hero ─────────────────────────────────────────────── */
+    .hero {
+      padding: 100px 0 80px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% -10%, rgba(124, 92, 191, 0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 80% 60%,  rgba(200, 148, 31,  0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 4px 14px 4px 10px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+
+    .hero-badge .dot {
+      width: 7px; height: 7px;
+      background: var(--purple-light);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+
+    .hero h1 {
+      font-size: clamp(2.4rem, 5vw, 3.8rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, var(--gold-light) 0%, #fff9ec 60%, var(--purple-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-tagline {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      max-width: 520px;
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 24px;
+      border-radius: var(--radius);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--gold);
+      color: #0d0e14;
+    }
+
+    .btn-primary:hover {
+      background: var(--gold-light);
+      text-decoration: none;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(200, 148, 31, 0.35);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      background: var(--bg3);
+      border-color: var(--text-dim);
+      text-decoration: none;
+    }
+
+    .hero-meta {
+      margin-top: 52px;
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .hero-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .hero-stat .val {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--gold-light);
+    }
+
+    .hero-stat .lbl {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Problem ──────────────────────────────────────────── */
+    .problem-quote {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--red);
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.8;
+      font-style: italic;
+      max-width: 680px;
+      margin-bottom: 28px;
+    }
+
+    /* ── Memory Layers ────────────────────────────────────── */
+    .layers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .layer-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      transition: border-color 0.2s, transform 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .layer-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--card-accent, var(--gold));
+      opacity: 0.6;
+    }
+
+    .layer-card:hover {
+      border-color: var(--card-accent, var(--gold));
+      transform: translateY(-2px);
+    }
+
+    .layer-card .icon {
+      font-size: 1.6rem;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .layer-card h3 {
+      color: var(--card-accent, var(--gold-light));
+      margin-bottom: 8px;
+    }
+
+    .layer-card p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 14px;
+    }
+
+    .layer-card .example {
+      background: var(--bg3);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 0.82rem;
+      font-style: italic;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+
+    /* ── How It Works ─────────────────────────────────────── */
+    .flow {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      max-width: 600px;
+    }
+
+    .flow-step {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      position: relative;
+    }
+
+    .flow-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 19px;
+      top: 44px;
+      bottom: -8px;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--purple-dim), transparent);
+    }
+
+    .flow-num {
+      flex-shrink: 0;
+      width: 38px; height: 38px;
+      background: var(--bg3);
+      border: 1px solid var(--purple-dim);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--purple-light);
+      margin-top: 2px;
+    }
+
+    .flow-body {
+      padding-bottom: 36px;
+    }
+
+    .flow-body h3 {
+      margin-bottom: 4px;
+    }
+
+    .flow-body p {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    /* ── Features Grid ────────────────────────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+    }
+
+    .feature-item {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .feature-item .fi-icon {
+      font-size: 1.3rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .feature-item h3 {
+      font-size: 0.95rem;
+      margin-bottom: 3px;
+    }
+
+    .feature-item p {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    /* ── Installation ─────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
+
+    .tab-btn {
+      padding: 10px 22px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.15s;
+    }
+
+    .tab-btn.active {
+      color: var(--gold-light);
+      border-bottom-color: var(--gold);
+    }
+
+    .tab-btn:hover:not(.active) {
+      color: var(--text);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .install-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .install-step {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+    }
+
+    .step-num {
+      flex-shrink: 0;
+      width: 28px; height: 28px;
+      background: var(--gold-dim);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--gold-light);
+      margin-top: 2px;
+    }
+
+    .step-body h3 {
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+
+    .step-body p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .code-block {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    .callout {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--gold);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 20px;
+    }
+
+    .callout strong { color: var(--gold-light); }
+
+    .callout-warn {
+      border-left-color: var(--red);
+    }
+
+    .callout-warn strong { color: #e07070; }
+
+    /* ── Why We Made This ─────────────────────────────────── */
+    .why-quote {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 36px 40px;
+      max-width: 700px;
+      position: relative;
+    }
+
+    .why-quote::before {
+      content: '\201C';
+      position: absolute;
+      top: -10px; left: 24px;
+      font-size: 5rem;
+      line-height: 1;
+      color: var(--purple-dim);
+      font-family: Georgia, serif;
+    }
+
+    .why-quote p {
+      font-size: 1.08rem;
+      color: var(--text-muted);
+      font-style: italic;
+      line-height: 1.9;
+    }
+
+    .why-quote .attrib {
+      margin-top: 20px;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      font-style: normal;
+    }
+
+    /* ── Footer ───────────────────────────────────────────── */
+    footer {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+
+    footer .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    footer a { color: var(--text-dim); }
+    footer a:hover { color: var(--text-muted); }
+
+    /* ── Misc Helpers ─────────────────────────────────────── */
+    .tag {
+      display: inline-block;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 2px 10px;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+    }
+
+    .divider-label {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 36px;
+    }
+
+    .divider-label h2 { margin-bottom: 0; }
+
+    /* ── Responsive ───────────────────────────────────────── */
+    @media (max-width: 640px) {
+      section { padding: 56px 0; }
+      .hero { padding: 72px 0 56px; }
+      .hero h1 { font-size: 2.2rem; }
+      .nav-links { display: none; }
+      .why-quote { padding: 28px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Navigation ──────────────────────────────────────────── -->
+<nav>
+  <div class="container">
+    <span class="nav-brand">PAC ✦ Persistent Adventure Chronicle</span>
+    <ul class="nav-links">
+      <li><a href="#what-it-does">What it does</a></li>
+      <li><a href="#how-it-works">How it works</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#install">Install</a></li>
+      <li><a href="https://github.com/GombaTheGreat/pac">GitHub</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ── Hero ────────────────────────────────────────────────── -->
+<div class="hero">
+  <div class="container">
+    <img src="https://i.ibb.co/jkKXWPGR/Gomba-PAC.png" alt="PAC Logo" style="width:110px;height:110px;object-fit:contain;margin-bottom:28px;display:block;filter:drop-shadow(0 0 18px rgba(200,148,31,0.35));" />
+    <div class="hero-badge">
+      <span class="dot"></span>
+      SillyTavern Extension &nbsp;·&nbsp; v0.1.0
+    </div>
+    <h1>Your characters remember.<br>Your story continues.</h1>
+    <p class="hero-tagline">
+      PAC gives your AI characters permanent, layered memory that persists across every chat session — your titles, your history, the world you've shaped together.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#install">&#11015; Install PAC</a>
+      <a class="btn btn-ghost" href="https://github.com/GombaTheGreat/pac">View on GitHub</a>
+    </div>
+    <div class="hero-meta">
+      <div class="hero-stat">
+        <span class="val">5</span>
+        <span class="lbl">Memory layers</span>
+      </div>
+      <div class="hero-stat">
+        <span class="val">Local</span>
+        <span class="lbl">All data on-device</span>
+      </div>
+      <div class="hero-stat">
+        <span class="val">Any AI</span>
+        <span class="lbl">Works with any model</span>
+      </div>
+      <div class="hero-stat">
+        <span class="val">Free</span>
+        <span class="lbl">Open source, MIT</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── The Problem ─────────────────────────────────────────── -->
+<section>
+  <div class="container">
+    <h2>The problem with AI roleplay</h2>
+    <p class="section-intro">Every time you start a new session, it's like it never happened.</p>
+    <div class="problem-quote">
+      You've spent weeks building a story with a character. You've earned titles, made enemies, shaped the world. Then you open a new chat and they've forgotten everything — who you are, what you've been through, the history you share.
+      <br><br>
+      You end up re-explaining yourself every session, or writing long static system prompts that slowly drift further and further from where the story actually is.
+    </div>
+    <p style="color: var(--text-muted); max-width: 560px;">
+      PAC is a SillyTavern extension that solves this. It automatically captures what matters from your conversations and injects it back into every future session — so your characters actually know you the next time you talk to them.
+    </p>
+  </div>
+</section>
+
+<!-- ── Memory Layers ────────────────────────────────────────── -->
+<section id="what-it-does">
+  <div class="container">
+    <h2>Five layers of persistent memory</h2>
+    <p class="section-intro">PAC organises memory into distinct stores, each injected into every prompt within a configurable token budget.</p>
+    <div class="layers-grid">
+
+      <div class="layer-card" style="--card-accent: #e8b84b;">
+        <span class="icon">&#9812;</span>
+        <h3>Your Active Persona</h3>
+        <p>Permanent facts about your player character — titles earned, faction standings, reputation, NPC relationships. This is about you.</p>
+        <div class="example">"Champion of the Iron Circle · Allied with the Merchant's Guild · Wanted by the City Guard"</div>
+      </div>
+
+      <div class="layer-card" style="--card-accent: #6ab0e0;">
+        <span class="icon">&#127758;</span>
+        <h3>World State</h3>
+        <p>World-shaping events that permanently changed the setting. Shared across all characters in the world.</p>
+        <div class="example">"The old king was slain. The city of Vareth lies under rebel control. The northern pass is sealed by ice magic."</div>
+      </div>
+
+      <div class="layer-card" style="--card-accent: #9b7ee0;">
+        <span class="icon">&#129333;</span>
+        <h3>Character Knowledge</h3>
+        <p>Permanent facts about the AI character you're talking to — their titles, affiliations, reputation. Separate from your persona.</p>
+        <div class="example">"Now known as the Exile Knight. Former Silver Order. Carries a blade that cannot rust."</div>
+      </div>
+
+      <div class="layer-card" style="--card-accent: #5aaa78;">
+        <span class="icon">&#128214;</span>
+        <h3>Story So Far</h3>
+        <p>Compressed recaps of past sessions — the "previously on…" that the AI reads before every chat. Auto-generated every 30 messages.</p>
+        <div class="example">"Last session: you defeated the king's assassin in the old chapel, gained the trust of the rebel faction…"</div>
+      </div>
+
+      <div class="layer-card" style="--card-accent: #e07878;">
+        <span class="icon">&#10024;</span>
+        <h3>Episodic Memories</h3>
+        <p>Specific moments — things that happened, places visited, conversations had. Retrieved by relevance using hybrid search.</p>
+        <div class="example">"Rescued the merchant's daughter from the ruins beneath the market quarter"</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── How It Works ─────────────────────────────────────────── -->
+<section id="how-it-works">
+  <div class="container">
+    <h2>How it works</h2>
+    <p class="section-intro">PAC runs quietly in the background. You don't have to manage anything by hand.</p>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start;">
+
+      <div class="flow">
+        <p style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 20px;">Extraction — every 5 AI messages</p>
+
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <div class="flow-body">
+            <h3>Your AI classifies the conversation</h3>
+            <p>PAC sends the recent exchange to your AI model and asks it to identify notable facts — who you've become, what the character now knows, what changed in the world, what moments happened.</p>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-num">2</div>
+          <div class="flow-body">
+            <h3>You approve what gets saved</h3>
+            <p>A dialog shows the proposed entries across all memory buckets. Tick or untick anything before saving. You're always in control of what makes it into permanent memory.</p>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-num">3</div>
+          <div class="flow-body">
+            <h3>Stored locally and indexed</h3>
+            <p>Approved entries are written to plain JSON/JSONL files on your machine and added to the search index. Nothing leaves your device.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow">
+        <p style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 20px;">Injection — at every generation</p>
+
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <div class="flow-body">
+            <h3>Relevant memories are retrieved</h3>
+            <p>PAC runs a hybrid search — BM25 keyword matching plus optional semantic vector search — and merges results. The memories most relevant to the current conversation surface first.</p>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-num">2</div>
+          <div class="flow-body">
+            <h3>All layers are assembled</h3>
+            <p>Persona facts, world state, character knowledge, session summaries, and top memories are packed together within your configured token budget.</p>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-num">3</div>
+          <div class="flow-body">
+            <h3>Injected into the prompt</h3>
+            <p>The assembled context is quietly inserted before the AI generates its next response. It sees your shared history as natural background knowledge.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ─────────────────────────────────────────────── -->
+<section id="features">
+  <div class="container">
+    <h2>Everything in the box</h2>
+    <p class="section-intro">PAC ships as a complete system — extraction, storage, retrieval, and injection all built in.</p>
+    <div class="features-grid">
+
+      <div class="feature-item">
+        <span class="fi-icon">&#9989;</span>
+        <div>
+          <h3>Approval dialogs</h3>
+          <p>Review every proposed memory before it's saved. Tick or untick individual items across all four buckets.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="fi-icon">&#128269;</span>
+        <div>
+          <h3>Hybrid memory search</h3>
+          <p>BM25 keyword matching plus optional semantic vector embeddings, merged with Reciprocal Rank Fusion.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="fi-icon">&#127760;</span>
+        <div>
+          <h3>Persistent World mode</h3>
+          <p>Share world and character memory across multiple personas. Your personal profile always stays private.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="fi-icon">&#127970;</span>
+        <div>
+          <h3>Token budget control</h3>
+          <p>Set a total token budget for PAC with per-layer minimums. It never crowds out your actual conversation.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="fi-icon">&#128196;</span>
+        <div>
+          <h3>Auto session summaries</h3>
+          <p>Every 30 messages, a compressed recap is generated and stored. The two most recent summaries inject into every prompt.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="fi-icon">&#9881;</span>
+        <div>
+          <h3>Memory consolidation</h3>
+          <p>Merge groups of related memories into single compact entries to prevent log bloat over long campaigns.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="fi-icon">&#128190;</span>
+        <div>
+          <h3>Import &amp; export</h3>
+          <p>Back up and restore all memory data as a zip, per persona. Human-readable JSON/JSONL on disk at all times.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="fi-icon">&#128065;</span>
+        <div>
+          <h3>Preview tab</h3>
+          <p>See exactly what text will be injected into the next prompt, broken down by layer, before you send anything.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="fi-icon">&#127991;</span>
+        <div>
+          <h3>World tag scoping</h3>
+          <p>PAC is completely dormant unless a character has a matching world tag. No accidental memory for random chats.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="fi-icon">&#128274;</span>
+        <div>
+          <h3>Fully local</h3>
+          <p>All memory is stored on your machine. No cloud, no accounts, no telemetry. Works with any AI provider.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Installation ─────────────────────────────────────────── -->
+<section id="install">
+  <div class="container">
+    <h2>Installation</h2>
+    <p class="section-intro">PAC has two parts: the client extension and a server plugin. Both must be installed.</p>
+
+    <div class="callout callout-warn" style="margin-bottom: 28px; max-width: 640px;">
+      <strong>Important:</strong> The server plugin cannot be installed automatically — it always requires a manual step regardless of which installation method you use. SillyTavern must be restarted after both parts are in place.
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(event, 'tab-github')">GitHub Install Extension</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-manual')">Manual zip install</button>
+    </div>
+
+    <div id="tab-github" class="tab-panel active">
+      <div class="install-steps">
+        <div class="install-step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h3>Install the client extension via SillyTavern</h3>
+            <p>In SillyTavern, open <strong>Extensions → Install Extension</strong>, paste the URL below, and click Install.</p>
+            <div class="code-block">https://github.com/GombaTheGreat/pac</div>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h3>Manually install the server plugin</h3>
+            <p>Download or clone this repo and copy the <code>server-plugin/</code> folder into your SillyTavern plugins directory:</p>
+            <div class="code-block">SillyTavern/
+└── plugins/
+    └── pac/
+        └── index.mjs</div>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h3>Enable server plugins in config.yaml</h3>
+            <p>Open <code>config.yaml</code> in your SillyTavern root and add or confirm:</p>
+            <div class="code-block">enableServerPlugins: true</div>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h3>Restart SillyTavern fully</h3>
+            <p>Close and reopen SillyTavern — don't just refresh the browser tab. The server plugin loads on startup.</p>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <h3>Enable PAC in Extensions</h3>
+            <p>Go to <strong>Extensions</strong> (puzzle piece icon) and make sure <strong>Persistent Adventure Chronicle</strong> is toggled on. A PAC panel will appear in your sidebar.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-manual" class="tab-panel">
+      <div class="install-steps">
+        <div class="install-step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h3>Download the release zip</h3>
+            <p>Grab the latest zip from the <a href="https://github.com/GombaTheGreat/pac/releases">Releases page</a>.</p>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h3>Extract into your SillyTavern root folder</h3>
+            <p>The SillyTavern root is the folder containing <code>Start.bat</code> or <code>start.sh</code>. When prompted to merge folders, say <strong>Yes</strong>.</p>
+            <div class="code-block">SillyTavern/
+├── data/default-user/extensions/pac/   ← client extension
+└── plugins/pac/                         ← server plugin</div>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h3>Enable server plugins &amp; restart</h3>
+            <p>Add <code>enableServerPlugins: true</code> to <code>config.yaml</code>, then restart SillyTavern fully.</p>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h3>Enable PAC in Extensions</h3>
+            <p>Toggle on <strong>Persistent Adventure Chronicle</strong> in the Extensions panel.</p>
+          </div>
+        </div>
+      </div>
+      <div class="callout" style="max-width: 560px;">
+        <strong>Non-default username?</strong> If you've changed your SillyTavern username from the default, also copy <code>extensions/pac/</code> from <code>data/default-user/</code> into <code>data/YOUR-USERNAME/extensions/</code>.
+      </div>
+    </div>
+
+    <div style="margin-top: 48px; max-width: 540px;">
+      <h3 style="margin-bottom: 16px; color: var(--gold-light);">First-time setup — world tags</h3>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">
+        PAC only activates for characters that belong to a recognised world. This prevents accidental memory for every character you open. Setup takes thirty seconds:
+      </p>
+      <div class="install-steps">
+        <div class="install-step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h3>Add a world name in PAC → General → World Tags</h3>
+            <p>e.g. <code>Eldoria</code>, <code>Voruun</code>, <code>CyberCity</code> — whatever suits your campaign.</p>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h3>Add the same word as a tag on your character card</h3>
+            <p>Open the character in SillyTavern's editor, add the tag, save.</p>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h3>Open a chat — PAC activates automatically</h3>
+            <p>The status bar will show <code>🌍 Eldoria | CharacterName | 0 memories</code>. You're tracking.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Why We Made This ─────────────────────────────────────── -->
+<section>
+  <div class="container">
+    <h2>Why we made this</h2>
+    <div class="why-quote">
+      <p>
+        SillyTavern is brilliant for roleplay and collaborative storytelling with AI. But the amnesia between sessions breaks immersion in a way that's hard to paper over. You can write long system prompts that describe who you are — but they're static, they don't grow with your story, and maintaining them by hand becomes a real chore the longer a campaign runs.
+        <br><br>
+        PAC is what we wanted to exist: something that quietly watches your story unfold, pulls out what matters, and makes sure your characters actually know you the next time you talk to them. The AI you've been building a campaign with should know you're the Champion of the Iron Circle before you have to tell it again.
+        <br><br>
+        It's made for people who want their AI adventures to feel like they're going somewhere — where the characters you care about remember the journey.
+      </p>
+      <p class="attrib">— GombaTheGreat</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ───────────────────────────────────────────────── -->
+<footer>
+  <div class="container">
+    <div>
+      <strong style="color: var(--text-muted);">PAC v0.1.0</strong>
+      &nbsp;·&nbsp; MIT License &nbsp;·&nbsp; by
+      <a href="https://github.com/GombaTheGreat">GombaTheGreat</a>
+      <br>
+      Not affiliated with or endorsed by the SillyTavern project.
+      All memory stored locally on your device.
+    </div>
+    <div>
+      <a href="https://github.com/GombaTheGreat/pac">GitHub</a>
+      &nbsp;&nbsp;
+      <a href="https://github.com/GombaTheGreat/pac/releases">Releases</a>
+      &nbsp;&nbsp;
+      <a href="https://github.com/GombaTheGreat/pac/issues">Issues</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  function switchTab(e, id) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    e.target.classList.add('active');
+    document.getElementById(id).classList.add('active');
+  }
+</script>
+
+</body>
+</html>

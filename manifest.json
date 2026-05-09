@@ -1,0 +1,11 @@
+{
+    "display_name": "Persistent Adventure Chronicle",
+    "loading_order": 80,
+    "requires": [],
+    "optional": [],
+    "js": "index.js",
+    "css": "style.css",
+    "author": "GombaTheGreat",
+    "version": "0.1.0",
+    "homePage": "https://github.com/GombaTheGreat/pac"
+}

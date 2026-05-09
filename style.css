@@ -1,0 +1,1414 @@
+/* ============================================================
+   PAC — Persistent Adventure Chronicle — Extension Styles
+   ============================================================ */
+
+#pac_settings {
+    font-size: 0.9em;
+}
+
+/* ── Status / top row ──────────────────────────────────────── */
+
+.ms-top-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 2px 4px;
+    flex-wrap: wrap;
+}
+
+.ms-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.92em;
+    user-select: none;
+}
+
+.ms-status-badge {
+    display: inline-block;
+    border-radius: 4px;
+    font-size: 0.68em;
+    font-weight: 700;
+    padding: 2px 7px;
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.ms-badge-on {
+    background: rgba(46, 204, 113, 0.18);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.35);
+}
+
+.ms-badge-off {
+    background: rgba(150, 150, 150, 0.12);
+    color: #777;
+    border: 1px solid rgba(150, 150, 150, 0.25);
+}
+
+.ms-pw-status-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.78em;
+    flex-shrink: 0;
+    cursor: pointer;
+    color: var(--SmartThemeEmColor, #888);
+    border: 1px solid rgba(150, 150, 150, 0.25);
+    border-radius: 4px;
+    padding: 2px 7px;
+    white-space: nowrap;
+}
+
+.ms-pw-status-label input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+}
+
+.ms-memory-status {
+    flex: 1;
+    font-size: 0.76em;
+    color: var(--SmartThemeEmColor, #888);
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+/* ── Plugin offline banner ────────────────────────────────── */
+
+.ms-plugin-banner {
+    background: rgba(231, 76, 60, 0.12);
+    border: 1px solid rgba(231, 76, 60, 0.35);
+    border-radius: 6px;
+    color: #e74c3c;
+    font-size: 0.82em;
+    padding: 8px 12px;
+    margin: 6px 0 4px;
+    line-height: 1.5;
+}
+
+.ms-plugin-banner code {
+    background: rgba(231, 76, 60, 0.15);
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 0.95em;
+}
+
+/* ── Plugin setup modal ───────────────────────────────────── */
+
+.pac-setup-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pac-setup-modal.hidden { display: none; }
+
+.pac-setup-modal-box {
+    background: var(--SmartThemeBlurTintColor, #1e1e2e);
+    border: 1px solid rgba(231, 76, 60, 0.5);
+    border-radius: 10px;
+    padding: 24px 28px;
+    max-width: 460px;
+    width: 90%;
+    color: var(--SmartThemeBodyColor, #cdd6f4);
+    line-height: 1.55;
+}
+
+.pac-setup-modal-title {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #e74c3c;
+    margin-bottom: 12px;
+}
+
+.pac-setup-code-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin: 10px 0 14px;
+}
+
+.pac-setup-code-row code {
+    flex: 1;
+    font-size: 0.9em;
+    color: #a6e3a1;
+    user-select: all;
+}
+
+.pac-setup-modal-footer {
+    text-align: right;
+    margin-top: 8px;
+}
+
+/* ── Health checks ─────────────────────────────────────────── */
+
+.ms-health-checks {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 6px 2px 4px;
+}
+
+.ms-health-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8em;
+}
+
+.ms-health-icon {
+    font-size: 1em;
+    line-height: 1;
+    width: 14px;
+    text-align: center;
+    flex-shrink: 0;
+    transition: color 0.2s;
+}
+
+.ms-health-label {
+    width: 72px;
+    flex-shrink: 0;
+    color: var(--SmartThemeBodyColor, #ccc);
+    font-weight: 500;
+}
+
+.ms-health-value {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ms-health-row.pass .ms-health-icon { color: #2ecc71; }
+.ms-health-row.fail .ms-health-icon { color: #e74c3c; }
+.ms-health-row.pass .ms-health-value { color: var(--SmartThemeBodyColor, #ccc); }
+.ms-health-row.fail .ms-health-value { color: #e74c3c; }
+
+/* ── Budget card ───────────────────────────────────────────── */
+
+.ms-budget-card {
+    background: var(--SmartThemeBlurTintColor, rgba(255,255,255,0.03));
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 8px;
+    padding: 12px 14px 10px;
+    margin: 6px 0 4px;
+}
+
+.ms-budget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+}
+
+.ms-budget-label {
+    font-size: 0.75em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--SmartThemeEmColor, #999);
+}
+
+.ms-budget-value {
+    font-size: 1em;
+    font-weight: 700;
+    color: var(--SmartThemeBodyColor, #ddd);
+    letter-spacing: -0.01em;
+}
+
+.ms-range-full {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0 0 8px;
+    accent-color: #3498db;
+    cursor: pointer;
+}
+
+/* ── Live token breakdown (inside budget card) ─────────────── */
+
+.ms-budget-breakdown {
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px solid var(--SmartThemeBorderColor, #333);
+}
+
+.ms-layer-bar-container {
+    display: flex;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: var(--SmartThemeBorderColor, #3a3a3a);
+    margin-bottom: 8px;
+    width: 100%;
+}
+
+.ms-layer-bar {
+    height: 100%;
+    width: 0;
+    flex-shrink: 0;
+    transition: width 0.35s ease;
+}
+
+#ms-bar-identity   { background: #3498db; }
+#ms-bar-worldstate { background: #f39c12; }
+#ms-bar-char       { background: #9b59b6; }
+#ms-bar-summary    { background: #2ecc71; }
+#ms-bar-events     { background: #e67e22; }
+
+.ms-layer-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    align-items: center;
+}
+
+.ms-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.76em;
+    color: var(--SmartThemeEmColor, #888);
+}
+
+.ms-legend-total {
+    font-size: 0.76em;
+    font-weight: 600;
+    color: var(--SmartThemeBodyColor, #ccc);
+    margin-left: auto;
+}
+
+.ms-layer-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.ms-dot-identity   { background: #3498db; }
+.ms-dot-worldstate { background: #f39c12; }
+.ms-dot-char       { background: #9b59b6; }
+.ms-dot-summary    { background: #2ecc71; }
+.ms-dot-events     { background: #e67e22; }
+
+/* ── Advanced section ──────────────────────────────────────── */
+
+.ms-advanced-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 2px 5px;
+    margin-top: 6px;
+    cursor: pointer;
+    font-size: 0.73em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--SmartThemeEmColor, #777);
+    user-select: none;
+    border-top: 1px solid var(--SmartThemeBorderColor, #333);
+    transition: color 0.15s;
+}
+
+.ms-advanced-toggle:hover {
+    color: var(--SmartThemeBodyColor, #bbb);
+}
+
+.ms-advanced-icon {
+    font-size: 0.75em;
+    transition: transform 0.2s;
+}
+
+.ms-advanced-panel {
+    padding-top: 2px;
+}
+
+/* ── Tab bar ───────────────────────────────────────────────── */
+
+.ms-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    margin: 8px 0 0;
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #444);
+    padding-bottom: 4px;
+}
+
+.ms-tab {
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--SmartThemeEmColor, #888);
+    cursor: pointer;
+    font-size: 0.76em;
+    font-weight: 500;
+    padding: 4px 10px;
+    transition: color 0.15s, background 0.15s;
+    letter-spacing: 0.02em;
+}
+
+.ms-tab:hover {
+    color: var(--SmartThemeBodyColor, #ccc);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.ms-tab.active {
+    background: rgba(52, 152, 219, 0.14);
+    color: #3498db;
+    font-weight: 700;
+}
+
+/* ── Tab content ───────────────────────────────────────────── */
+
+.ms-tab-content {
+    padding: 10px 0;
+}
+
+.ms-tab-content.hidden {
+    display: none;
+}
+
+/* ── General layout helpers ────────────────────────────────── */
+
+.ms-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.ms-indent {
+    padding-left: 20px;
+}
+
+.ms-section-title {
+    font-weight: 700;
+    font-size: 0.73em;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--SmartThemeEmColor, #999);
+    margin: 10px 0 6px;
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    padding-bottom: 3px;
+}
+
+.ms-hint {
+    font-size: 0.8em;
+    color: var(--SmartThemeEmColor, #777);
+    margin: 2px 0 6px;
+    line-height: 1.45;
+}
+
+.ms-interval-label {
+    font-size: 0.82em;
+    color: var(--SmartThemeEmColor, #888);
+}
+
+/* ── Textareas ─────────────────────────────────────────────── */
+
+.ms-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--SmartThemeBlurTintColor, #1a1a1a);
+    border: 1px solid var(--SmartThemeBorderColor, #444);
+    border-radius: 5px;
+    color: var(--SmartThemeBodyColor, #ccc);
+    font-size: 0.84em;
+    padding: 7px 9px;
+    resize: vertical;
+    font-family: inherit;
+    transition: border-color 0.15s;
+}
+
+.ms-textarea:focus {
+    outline: none;
+    border-color: rgba(52, 152, 219, 0.5);
+}
+
+.ms-monospace {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.79em;
+}
+
+/* ── Buttons ───────────────────────────────────────────────── */
+
+button.menu_button.danger {
+    border-color: rgba(192, 57, 43, 0.6);
+    color: #e74c3c;
+}
+
+button.menu_button.danger:hover {
+    background: rgba(192, 57, 43, 0.15);
+    border-color: #c0392b;
+}
+
+/* ── Select dropdown ───────────────────────────────────────── */
+
+.ms-select {
+    background: var(--SmartThemeBlurTintColor, #1a1a1a);
+    border: 1px solid var(--SmartThemeBorderColor, #555);
+    border-radius: 4px;
+    color: var(--SmartThemeBodyColor, #ccc);
+    padding: 3px 7px;
+    font-size: 0.84em;
+}
+
+/* ── Approval dialog ───────────────────────────────────────── */
+
+.ms-approval-dialog {
+    font-size: 0.9em;
+    color: var(--SmartThemeBodyColor, #ccc);
+}
+
+.ms-dialog-header h3 {
+    margin: 0 0 4px;
+    font-size: 1.1em;
+}
+
+.ms-dialog-subtitle {
+    font-size: 0.85em;
+    color: var(--SmartThemeEmColor, #888);
+    margin: 0 0 12px;
+}
+
+.ms-dialog-body {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.ms-section {
+    margin-bottom: 12px;
+}
+
+.ms-section h4 {
+    margin: 0 0 6px;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--SmartThemeEmColor, #aaa);
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #444);
+    padding-bottom: 3px;
+}
+
+.ms-approval-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+    cursor: pointer;
+    line-height: 1.4;
+}
+
+.ms-approval-item input[type="checkbox"] {
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+/* ── Badges ────────────────────────────────────────────────── */
+
+.ms-badge {
+    display: inline-block;
+    border-radius: 3px;
+    font-size: 0.72em;
+    font-weight: 700;
+    padding: 1px 6px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.ms-badge-green {
+    background: rgba(39, 174, 96, 0.2);
+    color: #2ecc71;
+    border: 1px solid rgba(39, 174, 96, 0.4);
+}
+
+.ms-badge-red {
+    background: rgba(192, 57, 43, 0.2);
+    color: #e74c3c;
+    border: 1px solid rgba(192, 57, 43, 0.4);
+}
+
+.ms-badge-blue {
+    background: rgba(41, 128, 185, 0.2);
+    color: #3498db;
+    border: 1px solid rgba(41, 128, 185, 0.4);
+}
+
+.ms-badge-orange {
+    background: rgba(211, 84, 0, 0.2);
+    color: #e67e22;
+    border: 1px solid rgba(211, 84, 0, 0.4);
+}
+
+.ms-badge-purple {
+    background: rgba(142, 68, 173, 0.2);
+    color: #9b59b6;
+    border: 1px solid rgba(142, 68, 173, 0.4);
+}
+
+/* ── Persona list ──────────────────────────────────────────── */
+
+.ms-persona-list {
+    background: var(--SmartThemeBlurTintColor, #1a1a1a);
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 5px;
+    padding: 4px 8px;
+    min-height: 28px;
+    max-height: 160px;
+    overflow-y: auto;
+    font-size: 0.84em;
+}
+
+.ms-persona-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #2d2d2d);
+}
+
+.ms-persona-row:last-child {
+    border-bottom: none;
+}
+
+.ms-persona-active {
+    color: var(--SmartThemeBodyColor, #fff);
+    font-weight: 600;
+}
+
+.ms-persona-id {
+    flex: 1;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ms-mono {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.84em;
+    color: var(--SmartThemeBodyColor, #ccc);
+}
+
+/* ── Identity form editor ──────────────────────────────────── */
+
+.ms-identity-view-toggle {
+    display: flex;
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.ms-identity-view-btn {
+    background: none;
+    border: none;
+    padding: 3px 10px;
+    font-size: 0.78em;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--SmartThemeEmColor, #888);
+    transition: background 0.1s, color 0.1s;
+}
+
+.ms-identity-view-btn.active {
+    background: var(--SmartThemeEmColor, #555);
+    color: var(--SmartThemeBodyColor, #eee);
+}
+
+.ms-identity-form {
+    margin-top: 4px;
+}
+
+.ms-identity-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82em;
+    margin-top: 2px;
+}
+
+.ms-identity-table thead th {
+    text-align: left;
+    padding: 3px 6px;
+    font-size: 0.85em;
+    color: var(--SmartThemeEmColor, #888);
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #333);
+}
+
+.ms-identity-table tbody td {
+    padding: 3px 4px;
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #252525);
+    vertical-align: middle;
+}
+
+.ms-identity-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.ms-identity-table input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--SmartThemeBlurTintColor, rgba(255,255,255,0.04));
+    border: 1px solid transparent;
+    border-radius: 3px;
+    padding: 2px 5px;
+    color: var(--SmartThemeBodyColor, #ccc);
+    font-size: 0.95em;
+}
+
+.ms-identity-table input[type="text"]:focus {
+    outline: none;
+    border-color: var(--SmartThemeEmColor, #555);
+}
+
+.ms-identity-table .ms-row-delete {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--SmartThemeEmColor, #888);
+    font-size: 0.9em;
+    padding: 2px 5px;
+    border-radius: 3px;
+    white-space: nowrap;
+}
+
+.ms-identity-table .ms-row-delete:hover { color: #e74c3c; }
+
+/* Title chips */
+.ms-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    min-height: 24px;
+}
+
+.ms-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--SmartThemeBlurTintColor, rgba(255,255,255,0.06));
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 12px;
+    padding: 2px 8px 2px 10px;
+    font-size: 0.8em;
+    color: var(--SmartThemeBodyColor, #ccc);
+}
+
+.ms-chip-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--SmartThemeEmColor, #888);
+    font-size: 0.85em;
+    padding: 0 2px;
+    line-height: 1;
+}
+
+.ms-chip-remove:hover { color: #e74c3c; }
+
+/* World facts list */
+.ms-worldfacts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.ms-worldfact-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 0.82em;
+    padding: 3px 0;
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #252525);
+}
+
+.ms-worldfact-row:last-child { border-bottom: none; }
+
+.ms-worldfact-text {
+    flex: 1;
+    color: var(--SmartThemeBodyColor, #ccc);
+}
+
+/* Custom fields */
+.ms-custom-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+.ms-custom-field-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82em;
+}
+
+.ms-custom-field-label {
+    min-width: 90px;
+    color: var(--SmartThemeEmColor, #888);
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+.ms-custom-field-row input[type="text"] {
+    flex: 1;
+    background: var(--SmartThemeBlurTintColor, rgba(255,255,255,0.04));
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 3px;
+    padding: 3px 6px;
+    color: var(--SmartThemeBodyColor, #ccc);
+    font-size: 0.95em;
+}
+
+.ms-custom-field-row input[type="text"]:focus {
+    outline: none;
+    border-color: var(--SmartThemeEmColor, #555);
+}
+
+.ms-inline-input {
+    background: var(--SmartThemeBlurTintColor, rgba(255,255,255,0.04));
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 4px;
+    padding: 4px 8px;
+    color: var(--SmartThemeBodyColor, #ccc);
+    font-size: 0.82em;
+}
+
+.ms-inline-input:focus {
+    outline: none;
+    border-color: var(--SmartThemeEmColor, #666);
+}
+
+/* ── Identity schema hint ──────────────────────────────────── */
+
+.ms-identity-schema code {
+    background: var(--SmartThemeBlurTintColor, #222);
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 3px;
+    padding: 1px 4px;
+    font-size: 0.84em;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* ── Viewer toolbar ────────────────────────────────────────── */
+
+.ms-viewer-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+/* ── Shared viewer list ────────────────────────────────────── */
+
+.ms-viewer-list {
+    background: var(--SmartThemeBlurTintColor, #1a1a1a);
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 5px;
+    padding: 2px 0;
+    max-height: 280px;
+    overflow-y: auto;
+    font-size: 0.82em;
+    margin-bottom: 8px;
+}
+
+.ms-viewer-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #252525);
+    line-height: 1.4;
+}
+
+.ms-viewer-item:last-child {
+    border-bottom: none;
+}
+
+.ms-viewer-item-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.ms-viewer-date {
+    color: var(--SmartThemeEmColor, #666);
+}
+
+.ms-viewer-text {
+    color: var(--SmartThemeBodyColor, #ccc);
+    word-break: break-word;
+}
+
+.ms-viewer-tags {
+    font-size: 0.85em;
+    color: var(--SmartThemeEmColor, #555);
+    margin-top: 2px;
+}
+
+.ms-viewer-delete {
+    background: none;
+    border: none;
+    color: #c0392b;
+    cursor: pointer;
+    font-size: 0.82em;
+    padding: 0 2px;
+    flex-shrink: 0;
+    opacity: 0.35;
+    line-height: 1.4;
+    transition: opacity 0.15s;
+}
+
+.ms-viewer-delete:hover {
+    opacity: 1;
+}
+
+/* ── Summary collapsible rows ──────────────────────────────── */
+
+.ms-summary-item {
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #252525);
+}
+
+.ms-summary-item:last-child {
+    border-bottom: none;
+}
+
+.ms-summary-header {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.1s;
+}
+
+.ms-summary-header:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.ms-summary-toggle {
+    font-size: 0.68em;
+    color: var(--SmartThemeEmColor, #777);
+    flex-shrink: 0;
+    width: 10px;
+}
+
+.ms-summary-title {
+    flex: 1;
+    color: var(--SmartThemeBodyColor, #ccc);
+    font-size: 0.92em;
+}
+
+.ms-summary-body {
+    display: none;
+    padding: 0 8px 10px 25px;
+    color: var(--SmartThemeEmColor, #bbb);
+    font-size: 0.88em;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.ms-summary-body.expanded {
+    display: block;
+}
+
+/* ── World browser ─────────────────────────────────────────── */
+
+#ms-world-browser {
+    margin-top: 4px;
+}
+
+.ms-world-item {
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 6px;
+    margin-bottom: 6px;
+    overflow: hidden;
+}
+
+.ms-world-header {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 10px;
+    cursor: pointer;
+    user-select: none;
+    background: var(--SmartThemeBlurTintColor, rgba(255,255,255,0.02));
+    transition: background 0.1s;
+}
+
+.ms-world-header:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.ms-world-toggle {
+    font-size: 0.68em;
+    color: var(--SmartThemeEmColor, #777);
+    flex-shrink: 0;
+    width: 10px;
+}
+
+.ms-world-name {
+    flex: 1;
+    font-weight: 600;
+    font-size: 0.88em;
+    color: var(--SmartThemeBodyColor, #ddd);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ms-world-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.ms-crosschar-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.74em;
+    color: var(--SmartThemeEmColor, #888);
+    cursor: pointer;
+    user-select: none;
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--SmartThemeBorderColor, #444);
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.ms-crosschar-label:has(input:checked) {
+    color: #3498db;
+    border-color: rgba(52, 152, 219, 0.45);
+    background: rgba(52, 152, 219, 0.08);
+}
+
+.ms-crosschar-label input {
+    margin: 0;
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
+}
+
+.ms-world-chars {
+    padding: 6px 10px 8px 24px;
+    background: var(--SmartThemeBlurTintColor, rgba(0,0,0,0.1));
+    border-top: 1px solid var(--SmartThemeBorderColor, #2d2d2d);
+}
+
+.ms-world-stats {
+    margin-bottom: 6px;
+    font-size: 0.78em;
+}
+
+.ms-world-char-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 3px 0;
+    font-size: 0.82em;
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #252525);
+}
+
+.ms-world-char-row:last-child {
+    border-bottom: none;
+}
+
+.ms-world-char-name {
+    color: var(--SmartThemeBodyColor, #ccc);
+    font-weight: 500;
+    min-width: 80px;
+}
+
+.ms-world-char-counts {
+    flex: 1;
+    font-size: 1em;
+}
+
+.ms-world-char-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.ms-world-char-actions button.menu_button {
+    font-size: 0.78em;
+    padding: 1px 6px;
+    min-height: 22px;
+    line-height: 1.2;
+}
+
+/* ── World tag editor ──────────────────────────────────────── */
+
+#ms-world-tags-editor {
+    line-height: 1.7;
+}
+
+/* ── Injection preview ─────────────────────────────────────── */
+
+.ms-preview-totals {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 10px;
+    padding: 6px 2px 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    font-size: 0.82em;
+}
+
+.ms-preview-total-used strong {
+    font-size: 1.05em;
+    color: var(--SmartThemeBodyColor, #ddd);
+}
+
+.ms-preview-total-breakdown {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 0;
+    font-size: 0.9em;
+}
+
+.ms-preview-layer {
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 5px;
+    margin-bottom: 5px;
+    overflow: hidden;
+}
+
+.ms-preview-layer-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 9px;
+    cursor: pointer;
+    background: var(--SmartThemeBlurTintColor, rgba(255,255,255,0.02));
+    border-left: 3px solid transparent;
+    user-select: none;
+    transition: background 0.1s;
+}
+
+.ms-preview-layer-header:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.ms-preview-layer-label {
+    flex: 1;
+    font-size: 0.8em;
+    font-weight: 600;
+    color: var(--SmartThemeBodyColor, #ccc);
+}
+
+.ms-preview-toggle {
+    font-size: 0.65em;
+    color: var(--SmartThemeEmColor, #777);
+    width: 10px;
+    flex-shrink: 0;
+}
+
+.ms-preview-text {
+    margin: 0;
+    padding: 8px 10px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.76em;
+    color: var(--SmartThemeEmColor, #aaa);
+    background: var(--SmartThemeBlurTintColor, rgba(0,0,0,0.15));
+    white-space: pre-wrap;
+    word-break: break-word;
+    border-top: 1px solid var(--SmartThemeBorderColor, #2d2d2d);
+    line-height: 1.5;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.ms-preview-text.hidden {
+    display: none;
+}
+
+/* ── Event search ──────────────────────────────────────────── */
+
+.ms-event-search {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 6px;
+    padding: 4px 8px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.82em;
+    background: var(--SmartThemeBlurTintColor, rgba(255,255,255,0.04));
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 4px;
+    color: var(--SmartThemeBodyColor, #ccc);
+}
+
+.ms-event-search:focus {
+    outline: none;
+    border-color: var(--SmartThemeEmColor, #666);
+}
+
+/* ── Manual event entry ────────────────────────────────────── */
+
+.ms-event-add-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.ms-event-input {
+    flex: 1;
+    min-width: 0;
+}
+
+/* ── Button + input height normalisation ───────────────────── */
+/* ST's .menu_button height varies with content; clamp it
+   so buttons next to number inputs or textareas look even. */
+
+#pac_settings button.menu_button {
+    min-height: 28px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    box-sizing: border-box;
+    vertical-align: middle;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+#pac_settings input[type="number"] {
+    min-height: 28px;
+    box-sizing: border-box;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    vertical-align: middle;
+}
+
+/* ── Callout boxes ─────────────────────────────────────────── */
+/* Used for quick-start guidance and feature-note highlights. */
+
+.ms-callout {
+    border-radius: 4px;
+    padding: 7px 10px;
+    margin: 0 0 10px;
+    font-size: 0.82em;
+    line-height: 1.5;
+    color: var(--SmartThemeBodyColor, #ccc);
+}
+
+.ms-callout strong {
+    font-weight: 700;
+}
+
+/* Blue — informational / quick start */
+.ms-callout-blue {
+    background: rgba(52, 152, 219, 0.08);
+    border: 1px solid rgba(52, 152, 219, 0.28);
+    border-left: 3px solid #3498db;
+}
+
+.ms-callout-blue strong { color: #3498db; }
+
+/* Orange — feature notes tied to the Events layer */
+.ms-callout-orange {
+    background: rgba(230, 126, 34, 0.07);
+    border: 1px solid rgba(230, 126, 34, 0.28);
+    border-left: 3px solid #e67e22;
+}
+
+.ms-callout-orange strong { color: #e67e22; }
+
+/* ── Advanced sub-toggle (collapsible power-user sections) ─── */
+
+.ms-advanced-sub-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    margin: 8px 0 0;
+    cursor: pointer;
+    font-size: 0.72em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--SmartThemeEmColor, #666);
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 4px;
+    user-select: none;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.ms-advanced-sub-toggle:hover {
+    color: var(--SmartThemeBodyColor, #bbb);
+    border-color: var(--SmartThemeEmColor, #666);
+}
+
+.ms-advanced-sub-panel {
+    margin-top: 6px;
+    padding: 8px 10px;
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 5px;
+    background: var(--SmartThemeBlurTintColor, rgba(255,255,255,0.02));
+}
+
+/* ── General tab — per-layer minimums ──────────────────────── */
+
+.ms-layer-min-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.ms-layer-min-label {
+    width: 68px;
+    flex-shrink: 0;
+    font-size: 0.85em;
+    color: var(--SmartThemeBodyColor, #ccc);
+}
+
+.ms-layer-min-val {
+    width: 46px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+/* ── Overview tab ──────────────────────────────────────────── */
+
+.ms-overview-section {
+    margin-top: 12px;
+}
+
+.ms-overview-section:first-child {
+    margin-top: 0;
+}
+
+.ms-overview-field {
+    display: flex;
+    gap: 8px;
+    padding: 3px 0;
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #2a2a2a);
+    font-size: 0.85em;
+    line-height: 1.4;
+}
+
+.ms-overview-field:last-child {
+    border-bottom: none;
+}
+
+.ms-overview-key {
+    width: 100px;
+    flex-shrink: 0;
+    color: var(--SmartThemeEmColor, #888);
+    font-size: 0.9em;
+}
+
+.ms-overview-val {
+    flex: 1;
+    color: var(--SmartThemeBodyColor, #ccc);
+    word-break: break-word;
+}
+
+.ms-overview-stat {
+    display: inline-block;
+    background: var(--SmartThemeBlurTintColor, rgba(255,255,255,0.05));
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.82em;
+    margin: 2px 4px 2px 0;
+}
+
+.ms-overview-event-item,
+.ms-overview-summary-item {
+    font-size: 0.82em;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #2a2a2a);
+    color: var(--SmartThemeBodyColor, #ccc);
+    line-height: 1.4;
+}
+
+.ms-overview-event-item:last-child,
+.ms-overview-summary-item:last-child {
+    border-bottom: none;
+}
+
+.ms-overview-date {
+    color: var(--SmartThemeEmColor, #888);
+    font-size: 0.88em;
+    margin-right: 4px;
+}
+
+/* ── Summary inline editing ────────────────────────────────── */
+
+.ms-summary-edit-area {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 80px;
+    resize: vertical;
+    background: var(--SmartThemeBlurTintColor, rgba(255,255,255,0.03));
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 4px;
+    color: var(--SmartThemeBodyColor, #ccc);
+    font-size: 0.85em;
+    padding: 6px 8px;
+    margin-top: 6px;
+    font-family: inherit;
+    line-height: 1.5;
+}
+
+.ms-summary-edit-area:focus {
+    outline: none;
+    border-color: var(--SmartThemeQuoteColor, #7a8aaa);
+}
+
+.ms-summary-item.editing .ms-summary-body {
+    display: none;
+}
+
+.ms-summary-edit-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.ms-summary-edit-btn {
+    font-size: 0.78em;
+    padding: 2px 8px;
+    background: none;
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 3px;
+    cursor: pointer;
+    color: var(--SmartThemeBodyColor, #ccc);
+}
+
+.ms-summary-edit-btn:hover {
+    background: var(--SmartThemeBlurTintColor, rgba(255,255,255,0.06));
+}
+
+.ms-summary-edit-btn.save {
+    border-color: rgba(46, 204, 113, 0.5);
+    color: #2ecc71;
+}
+
+.ms-summary-edit-btn.save:hover {
+    background: rgba(46, 204, 113, 0.1);
+}

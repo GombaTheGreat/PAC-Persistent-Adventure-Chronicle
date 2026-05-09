@@ -1,0 +1,25 @@
+# SillyTavern installation (not part of this repo)
+SillyTavern/
+
+# npm / build artefacts unrelated to PAC
+node_modules/
+package.json
+package-lock.json
+create-pptx.js
+
+# Working files / old iterations
+Memory Stack Idea/
+slides_qa/
+slides_qa2/
+
+# Release zips (use GitHub Releases instead)
+*.zip
+
+# Office files
+*.pptx
+*.pdf
+
+# OS noise
+.DS_Store
+Thumbs.db
+desktop.ini

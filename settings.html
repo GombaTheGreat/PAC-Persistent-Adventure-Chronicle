@@ -1,0 +1,570 @@
+<div id="pac_settings" class="ms-settings-panel">
+    <div class="inline-drawer">
+        <div class="inline-drawer-toggle inline-drawer-header">
+            <b>Persistent Adventure Chronicle</b>
+            <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
+        </div>
+        <div class="inline-drawer-content">
+
+            <!-- ── Plugin offline banner ───────────────────────────────── -->
+            <div id="ms-plugin-banner" class="ms-plugin-banner hidden">
+                ⚠ Server plugin not active — memory features disabled.
+                Enable <code>plugins/pac</code> in SillyTavern settings and reload.
+            </div>
+
+            <!-- ── Plugin setup modal ─────────────────────────────────── -->
+            <div id="pac-setup-modal" class="pac-setup-modal hidden">
+                <div class="pac-setup-modal-box">
+                    <div class="pac-setup-modal-title">⚠ PAC Server Plugin Not Active</div>
+                    <p>PAC needs its server plugin to store and retrieve memories.
+                       To enable it, open <strong>config.yaml</strong> in your SillyTavern
+                       root folder and add (or confirm) this line:</p>
+                    <div class="pac-setup-code-row">
+                        <code id="pac-setup-code">enableServerPlugins: true</code>
+                        <button id="pac-setup-copy" class="menu_button">Copy</button>
+                    </div>
+                    <p>Then <strong>fully restart SillyTavern</strong> (close and reopen —
+                       a browser refresh is not enough).</p>
+                    <div class="pac-setup-modal-footer">
+                        <button id="pac-setup-dismiss" class="menu_button menu_button_icon">
+                            Got it
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Status row ───────────────────────────────────────── -->
+            <div class="ms-top-row">
+                <label class="ms-toggle-label" for="ms-enabled">
+                    <input type="checkbox" id="ms-enabled">
+                    <span>Persistent Adventure Chronicle</span>
+                </label>
+                <span id="ms-status-badge" class="ms-status-badge ms-badge-off">OFF</span>
+                <label class="ms-pw-status-label" id="ms-pw-status-label" style="display:none;"
+                    title="When ON: Character Knowledge, World State, Memories, and Story So Far are shared across all your personas for this world. Your Active Persona is always private.">
+                    <input type="checkbox" id="ms-pw-status-toggle">
+                    <span>Persistent World</span>
+                </label>
+                <span id="ms-memory-status" class="ms-memory-status">No character loaded</span>
+            </div>
+
+            <!-- ── Health checks ────────────────────────────────────── -->
+            <div id="ms-health-checks" class="ms-health-checks">
+                <div class="ms-health-row" id="ms-health-persona">
+                    <span class="ms-health-icon">○</span>
+                    <span class="ms-health-label">Persona</span>
+                    <span class="ms-health-value ms-hint">—</span>
+                </div>
+                <div class="ms-health-row" id="ms-health-world">
+                    <span class="ms-health-icon">○</span>
+                    <span class="ms-health-label">World tag</span>
+                    <span class="ms-health-value ms-hint">—</span>
+                </div>
+                <div class="ms-health-row" id="ms-health-character">
+                    <span class="ms-health-icon">○</span>
+                    <span class="ms-health-label">Character</span>
+                    <span class="ms-health-value ms-hint">—</span>
+                </div>
+            </div>
+
+            <!-- ── Budget card (display only — slider is in General tab) -->
+            <div class="ms-budget-card">
+                <div class="ms-budget-header">
+                    <span class="ms-budget-label">Memory budget</span>
+                    <span id="ms-budget-token-display" class="ms-budget-value">1,200 tokens</span>
+                </div>
+
+                <div id="ms-budget-breakdown" class="ms-budget-breakdown hidden">
+                    <div class="ms-layer-bar-container">
+                        <div class="ms-layer-bar" id="ms-bar-identity"   title="Your Active Persona"></div>
+                        <div class="ms-layer-bar" id="ms-bar-worldstate" title="World State"></div>
+                        <div class="ms-layer-bar" id="ms-bar-char"       title="Character"></div>
+                        <div class="ms-layer-bar" id="ms-bar-summary"    title="Story So Far"></div>
+                        <div class="ms-layer-bar" id="ms-bar-events"     title="Memories"></div>
+                    </div>
+                    <div class="ms-layer-legend">
+                        <span class="ms-legend-item">
+                            <span class="ms-layer-dot ms-dot-identity"></span>
+                            <span id="ms-breakdown-profile">Your Active Persona: —</span>
+                        </span>
+                        <span class="ms-legend-item">
+                            <span class="ms-layer-dot ms-dot-worldstate"></span>
+                            <span id="ms-breakdown-worldstate">World State: —</span>
+                        </span>
+                        <span class="ms-legend-item">
+                            <span class="ms-layer-dot ms-dot-char"></span>
+                            <span id="ms-breakdown-char">Character: —</span>
+                        </span>
+                        <span class="ms-legend-item">
+                            <span class="ms-layer-dot ms-dot-summary"></span>
+                            <span id="ms-breakdown-l2">Story So Far: —</span>
+                        </span>
+                        <span class="ms-legend-item">
+                            <span class="ms-layer-dot ms-dot-events"></span>
+                            <span id="ms-breakdown-l3">Memories: —</span>
+                        </span>
+                        <span class="ms-legend-total" id="ms-breakdown-total">— / — tk</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Settings toggle ─────────────────────────────────── -->
+            <div class="ms-advanced-toggle" id="ms-advanced-toggle">
+                <span class="ms-advanced-icon" id="ms-advanced-icon">▶</span>
+                <span>Settings</span>
+            </div>
+
+            <!-- ── Advanced panel ───────────────────────────────────── -->
+            <div id="ms-advanced-panel" class="ms-advanced-panel hidden">
+
+                <div class="ms-tabs">
+                    <button class="ms-tab active" data-tab="overview">Overview</button>
+                    <button class="ms-tab" data-tab="identity">Your Active Persona</button>
+                    <button class="ms-tab" data-tab="worldstate">World State</button>
+                    <button class="ms-tab" data-tab="character">Character</button>
+                    <button class="ms-tab" data-tab="summary">Story So Far</button>
+                    <button class="ms-tab" data-tab="events">Memories</button>
+                    <button class="ms-tab" data-tab="worlds">Worlds</button>
+                    <button class="ms-tab" data-tab="extraction">Extraction</button>
+                    <button class="ms-tab" data-tab="general">General</button>
+                    <button class="ms-tab" data-tab="inject">Preview</button>
+                    <button class="ms-tab" data-tab="persona">Persona Management</button>
+                </div>
+
+                <!-- Tab: Worlds -->
+                <div class="ms-tab-content hidden" data-tab="worlds">
+
+                    <div class="ms-callout ms-callout-blue">
+                        <strong>Quick start:</strong> Add your world name to the list below,
+                        then add the same tag to your character card in SillyTavern's character
+                        browser. PAC activates automatically once the tags match.
+                    </div>
+
+                    <div class="ms-section-title">World Tag List</div>
+                    <p class="ms-hint">One tag per line. Case-insensitive — tags are matched regardless of capitalisation.</p>
+                    <textarea id="ms-world-tags-editor" class="ms-textarea ms-monospace" rows="10"
+                        placeholder="Voruun&#10;Starfall&#10;My World Tag"></textarea>
+                    <div class="ms-row" style="margin-top:4px;">
+                        <button id="ms-btn-reset-world-tags" class="menu_button">Reset to Built-in List</button>
+                    </div>
+
+                    <div class="ms-callout ms-callout-orange" style="margin-top:12px;">
+                        <strong>Narrator tag:</strong> Characters tagged <em>Narrator</em> in
+                        SillyTavern skip memory injection and summaries. In group chats, their
+                        extracted memories are cross-attributed to the other scene participants.
+                    </div>
+
+                    <div class="ms-section-title">World Browser</div>
+                    <p class="ms-hint">
+                        All worlds with saved memory. <strong>Persistent World</strong> — when ON,
+                        Character Knowledge, World State, Memories, and Story So Far are stored in
+                        a shared pool accessible to all your personas. Your Active Persona is always private.
+                    </p>
+                    <div id="ms-world-browser">
+                        <p class="ms-hint" style="padding:4px 0;">Open this tab to load.</p>
+                    </div>
+                </div>
+
+                <!-- Tab: Overview (default active) -->
+                <div class="ms-tab-content" data-tab="overview">
+                    <div class="ms-viewer-toolbar" style="margin-bottom:8px;">
+                        <strong id="ms-overview-char-label">Character: —</strong>
+                        <button id="ms-btn-refresh-overview" class="menu_button">Refresh</button>
+                    </div>
+                    <div id="ms-overview-content">
+                        <p class="ms-hint" style="padding:4px 0;">Open this tab to load the memory snapshot for the current character.</p>
+                    </div>
+                </div>
+
+                <!-- Tab: Your Active Persona -->
+                <div class="ms-tab-content hidden" data-tab="identity">
+                    <p class="ms-hint">
+                        Your persona's standing — always private, always injected first.
+                        Tracks titles earned, faction standing, NPC relationships, and custom fields.
+                    </p>
+                    <div class="ms-row" style="justify-content:space-between; align-items:center;">
+                        <strong id="ms-identity-char-label">Persona: (loading…)</strong>
+                        <div class="ms-identity-view-toggle">
+                            <button class="ms-identity-view-btn active" data-view="form">Form</button>
+                            <button class="ms-identity-view-btn" data-view="json">JSON</button>
+                        </div>
+                    </div>
+                    <div class="ms-row" style="gap:6px;">
+                        <button id="ms-btn-load-identity" class="menu_button">Load</button>
+                        <button id="ms-btn-save-identity" class="menu_button">Save</button>
+                        <button id="ms-btn-reset-identity" class="menu_button danger">Reset</button>
+                    </div>
+
+                    <!-- Form view -->
+                    <div id="ms-identity-form" class="ms-identity-form">
+
+                        <div class="ms-section-title">Titles</div>
+                        <div id="ms-identity-titles" class="ms-chip-list"></div>
+                        <div class="ms-row" style="gap:6px; margin-top:4px;">
+                            <input type="text" id="ms-identity-title-input" class="ms-inline-input" placeholder="Add title…" style="flex:1;">
+                            <button id="ms-btn-add-title" class="menu_button">Add</button>
+                        </div>
+
+                        <div class="ms-section-title" style="margin-top:10px;">Factions</div>
+                        <table class="ms-identity-table" id="ms-identity-factions-table">
+                            <thead><tr><th>Name</th><th>Stance</th><th></th></tr></thead>
+                            <tbody id="ms-identity-factions"></tbody>
+                        </table>
+                        <button id="ms-btn-add-faction" class="menu_button" style="margin-top:4px;">+ Add Faction</button>
+
+                        <div class="ms-section-title" style="margin-top:10px;">Reputation</div>
+                        <table class="ms-identity-table" id="ms-identity-reputation-table">
+                            <thead><tr><th>Place / Group</th><th>Descriptor</th><th></th></tr></thead>
+                            <tbody id="ms-identity-reputation"></tbody>
+                        </table>
+                        <button id="ms-btn-add-reputation" class="menu_button" style="margin-top:4px;">+ Add Reputation</button>
+
+                        <div class="ms-section-title" style="margin-top:10px;">Relationships</div>
+                        <table class="ms-identity-table" id="ms-identity-relationships-table">
+                            <thead><tr><th>NPC Name</th><th>Relationship Type</th><th></th></tr></thead>
+                            <tbody id="ms-identity-relationships"></tbody>
+                        </table>
+                        <button id="ms-btn-add-relationship" class="menu_button" style="margin-top:4px;">+ Add Relationship</button>
+
+                        <div class="ms-section-title" style="margin-top:10px;">Custom Fields</div>
+                        <p class="ms-hint">Track anything extra — gold, equipment, quest status, etc.</p>
+                        <div id="ms-identity-custom" class="ms-custom-fields"></div>
+                        <div class="ms-row" style="gap:6px; margin-top:4px;">
+                            <input type="text" id="ms-identity-custom-key-input" class="ms-inline-input" placeholder="Field name…" style="flex:1;">
+                            <button id="ms-btn-add-custom-field" class="menu_button">+ Add Field</button>
+                        </div>
+
+                    </div><!-- ms-identity-form -->
+
+                    <!-- JSON view (hidden by default) -->
+                    <div id="ms-identity-json-view" class="hidden">
+                        <textarea id="ms-identity-editor" class="ms-textarea ms-monospace" rows="14"
+                            placeholder='{"titles":[],"factions":[],"reputation":{},"relationships":[],"custom":{}}'></textarea>
+                        <div class="ms-identity-schema ms-hint" style="margin-top:6px;">
+                            <strong>Schema:</strong>
+                            <code>titles: string[]</code> ·
+                            <code>factions: [{name, stance}]</code> ·
+                            <code>reputation: {place: descriptor}</code> ·
+                            <code>relationships: [{name, type}]</code> ·
+                            <code>custom: {key: value}</code>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Tab: Character Knowledge -->
+                <div class="ms-tab-content hidden" data-tab="character">
+                    <p class="ms-hint">
+                        What this character knows and remembers — their titles, factions, and relationships
+                        from their own perspective. Shared across all your personas when Persistent World is ON.
+                    </p>
+
+                    <div id="ms-char-identity-section">
+                        <div class="ms-row" style="justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <strong id="ms-char-identity-char-label">Character Knowledge — (loading…)</strong>
+                            <div style="display:flex; gap:6px;">
+                                <button id="ms-btn-load-char-identity" class="menu_button">Load</button>
+                                <button id="ms-btn-save-char-identity" class="menu_button">Save</button>
+                                <button id="ms-btn-reset-char-identity" class="menu_button danger">Reset</button>
+                            </div>
+                        </div>
+
+                        <div id="ms-char-identity-form">
+
+                            <div class="ms-section-title">Titles</div>
+                            <div id="ms-char-identity-titles" class="ms-chip-list"></div>
+                            <div class="ms-row" style="gap:6px; margin-top:4px;">
+                                <input type="text" id="ms-char-identity-title-input" class="ms-inline-input" placeholder="Add title…" style="flex:1;">
+                                <button id="ms-btn-add-char-title" class="menu_button">Add</button>
+                            </div>
+
+                            <div class="ms-section-title" style="margin-top:10px;">Factions</div>
+                            <table class="ms-identity-table" id="ms-char-identity-factions-table">
+                                <thead><tr><th>Name</th><th>Stance</th><th></th></tr></thead>
+                                <tbody id="ms-char-identity-factions"></tbody>
+                            </table>
+                            <button id="ms-btn-add-char-faction" class="menu_button" style="margin-top:4px;">+ Add Faction</button>
+
+                            <div class="ms-section-title" style="margin-top:10px;">Reputation</div>
+                            <table class="ms-identity-table" id="ms-char-identity-reputation-table">
+                                <thead><tr><th>Place / Group</th><th>Descriptor</th><th></th></tr></thead>
+                                <tbody id="ms-char-identity-reputation"></tbody>
+                            </table>
+                            <button id="ms-btn-add-char-reputation" class="menu_button" style="margin-top:4px;">+ Add Reputation</button>
+
+                            <div class="ms-section-title" style="margin-top:10px;">Relationships</div>
+                            <table class="ms-identity-table" id="ms-char-identity-relationships-table">
+                                <thead><tr><th>NPC Name</th><th>Relationship Type</th><th></th></tr></thead>
+                                <tbody id="ms-char-identity-relationships"></tbody>
+                            </table>
+                            <button id="ms-btn-add-char-relationship" class="menu_button" style="margin-top:4px;">+ Add Relationship</button>
+
+                        </div><!-- ms-char-identity-form -->
+                    </div>
+                </div>
+
+                <!-- Tab: World State -->
+                <div class="ms-tab-content hidden" data-tab="worldstate">
+                    <p class="ms-hint">
+                        Permanent world-shaping changes — facts that are now true about this world regardless
+                        of which character you're talking to. Shared across all personas when Persistent World is ON.
+                    </p>
+
+                    <div id="ms-worldfacts-section">
+                        <div class="ms-row" style="justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <strong id="ms-worldfacts-world-label">World State — (loading…)</strong>
+                            <button id="ms-btn-clear-worldfacts" class="menu_button danger">Clear All</button>
+                        </div>
+
+                        <div class="ms-section-title">Add Fact Manually</div>
+                        <div class="ms-row" style="gap:6px; margin-bottom:8px;">
+                            <input type="text" id="ms-worldfact-manual-input" class="ms-inline-input" placeholder="Describe a permanent world change…" style="flex:1;">
+                            <button id="ms-btn-add-worldfact" class="menu_button">Add</button>
+                        </div>
+
+                        <div id="ms-worldfacts-count" class="ms-hint" style="margin-bottom:4px;"></div>
+                        <div id="ms-worldfacts-list" class="ms-worldfacts-list"></div>
+                    </div>
+                </div>
+
+                <!-- Tab: Events -->
+                <div class="ms-tab-content hidden" data-tab="events">
+                    <p class="ms-hint">Memory log for the current character. Semantically retrieved each generation to surface relevant past moments.</p>
+                    <div class="ms-viewer-toolbar">
+                        <strong id="ms-events-char-label">Character: —</strong>
+                        <div style="display:flex;gap:6px;">
+                            <button id="ms-btn-refresh-events" class="menu_button">Refresh</button>
+                            <button id="ms-btn-clear-events" class="menu_button danger">Clear All</button>
+                        </div>
+                    </div>
+
+                    <div class="ms-section-title" style="margin-top:8px;">Add Memory Manually</div>
+                    <div class="ms-event-add-row">
+                        <textarea id="ms-manual-event-input" class="ms-textarea ms-event-input" rows="2"
+                            placeholder="Describe a memory to log manually (e.g. 'Discovered the ruins beneath the city')"></textarea>
+                        <button id="ms-btn-add-event" class="menu_button" style="flex-shrink:0;">Add</button>
+                    </div>
+
+                    <div class="ms-section-title" style="margin-top:10px;">Memories</div>
+                    <input type="search" id="ms-event-search" class="ms-event-search" placeholder="Search memories…">
+                    <p id="ms-events-count" class="ms-hint">Switch to this tab to load.</p>
+                    <div id="ms-events-list" class="ms-viewer-list">
+                        <p class="ms-hint" style="padding:6px 8px;">No memories yet — generate messages and PAC will extract them automatically.</p>
+                    </div>
+
+                    <div class="ms-advanced-sub-toggle" id="ms-events-advanced-toggle">
+                        <span>⚙</span>
+                        <span>Advanced</span>
+                    </div>
+                    <div id="ms-events-advanced-panel" class="ms-advanced-sub-panel hidden">
+                        <div class="ms-section-title">Consolidate Memories</div>
+                        <p class="ms-hint" style="margin-bottom:6px;">
+                            Ask the LLM to merge related memories into single consolidated memories, then
+                            delete the originals. The 20 most recent memories are always excluded to protect
+                            fresh context.
+                        </p>
+                        <div class="ms-row" style="gap:8px; align-items:center; flex-wrap:wrap;">
+                            <button id="ms-btn-consolidate-events" class="menu_button">Consolidate Memories</button>
+                        </div>
+                        <div class="ms-row" style="gap:8px; align-items:center; flex-wrap:wrap; margin-top:4px;">
+                            <label for="ms-consolidation-threshold" class="ms-hint" style="flex-shrink:0;">Auto-suggest after</label>
+                            <input type="range" id="ms-consolidation-threshold" min="0" max="500" step="10" value="100" style="flex:1; max-width:160px;">
+                            <span id="ms-consolidation-threshold-display" class="ms-hint">100 memories</span>
+                        </div>
+                        <p class="ms-hint" style="margin-top:2px; font-size:0.8em;">Set to 0 to disable auto-suggestions.</p>
+
+                        <div class="ms-section-title" style="margin-top:10px;">Vector Index</div>
+                        <p class="ms-hint" style="margin-bottom:6px;">
+                            Rebuilds the semantic search index from saved memories. Only needed if
+                            retrieval seems stale. On first use, may download the vector model (~420 MB).
+                        </p>
+                        <div class="ms-row" style="gap:8px; align-items:center; flex-wrap:wrap;">
+                            <button id="ms-btn-rebuild-vectors" class="menu_button">Rebuild Vector Index</button>
+                            <span id="ms-rebuild-status" class="ms-hint"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Summary -->
+                <div class="ms-tab-content hidden" data-tab="summary">
+                    <p class="ms-hint">Session summaries bridge recent history into new chats. Generated by the main LLM, injected when budget allows.</p>
+
+                    <div class="ms-row" style="gap:10px;">
+                        <label for="ms-summary-words">Target word count:</label>
+                        <input type="number" id="ms-summary-words" min="50" max="1000" style="width:80px;">
+                    </div>
+                    <div class="ms-row">
+                        <button id="ms-btn-generate-summary" class="menu_button">Generate Now</button>
+                    </div>
+
+                    <div class="ms-section-title" style="margin-top:14px;">Saved Entries</div>
+                    <div class="ms-viewer-toolbar">
+                        <span id="ms-summaries-count" class="ms-hint">Click Refresh to load.</span>
+                        <div style="display:flex;gap:6px;">
+                            <button id="ms-btn-refresh-summaries" class="menu_button">Refresh</button>
+                            <button id="ms-btn-clear-summaries" class="menu_button danger">Clear All</button>
+                        </div>
+                    </div>
+                    <div id="ms-summaries-list" class="ms-viewer-list">
+                        <p class="ms-hint" style="padding:6px 8px;">No summaries loaded.</p>
+                    </div>
+
+                    <div class="ms-section-title" style="margin-top:14px;">Auto-generation</div>
+                    <p class="ms-hint">Silently generate a story entry every N messages. Set to 0 to disable.</p>
+                    <div class="ms-row" style="gap:10px; align-items:center;">
+                        <input type="range" id="ms-summary-interval" min="0" max="200" step="5" value="30" style="flex:1; max-width:180px;">
+                        <span id="ms-summary-interval-display" class="ms-interval-label">every 30 messages</span>
+                    </div>
+
+                    <div class="ms-section-title" style="margin-top:14px;">Summary Prompt</div>
+                    <p class="ms-hint">Use <code>{{words}}</code> as a placeholder for the target word count.</p>
+                    <textarea id="ms-summary-prompt" class="ms-textarea" rows="6"></textarea>
+                    <div class="ms-row" style="margin-top:4px;">
+                        <button id="ms-btn-reset-summary-prompt" class="menu_button">Reset to Default</button>
+                    </div>
+                </div>
+
+                <!-- Tab: Extraction -->
+                <div class="ms-tab-content hidden" data-tab="extraction">
+                    <p class="ms-hint">
+                        Every N messages the LLM classifies what happened into four buckets:
+                        <strong>Your Active Persona</strong> (who you are),
+                        <strong>Character Knowledge</strong> (permanent truths about the AI character),
+                        <strong>World State</strong> (what permanently changed in the world), and
+                        <strong>Memories</strong> (episodic moments recalled when relevant).
+                    </p>
+                    <div class="ms-row" style="flex-wrap:nowrap; align-items:center; gap:8px;">
+                        <label class="checkbox_label" for="ms-extraction-enabled">
+                            <input type="checkbox" id="ms-extraction-enabled">
+                            <span>Auto-extract every</span>
+                        </label>
+                        <input type="number" id="ms-extraction-interval" min="1" max="50" style="width:55px;">
+                        <span>messages</span>
+                    </div>
+                    <div class="ms-row">
+                        <label class="checkbox_label" for="ms-extraction-approval">
+                            <input type="checkbox" id="ms-extraction-approval">
+                            <span>Show approval dialog before saving</span>
+                        </label>
+                    </div>
+                    <div class="ms-row" style="margin-top:8px;">
+                        <button id="ms-btn-trigger-extraction" class="menu_button">Run Extraction Now</button>
+                    </div>
+
+                    <div class="ms-section-title" style="margin-top:14px;">Extraction Prompt</div>
+                    <p class="ms-hint">Must return JSON with <code>personaFacts</code>, <code>characterFacts</code>, <code>worldFacts</code>, and <code>events</code> keys.</p>
+                    <textarea id="ms-extraction-prompt" class="ms-textarea" rows="10"></textarea>
+                    <div class="ms-row" style="margin-top:4px;">
+                        <button id="ms-btn-reset-extraction-prompt" class="menu_button">Reset to Default</button>
+                    </div>
+                </div>
+
+                <!-- Tab: Preview (was Injection) -->
+                <div class="ms-tab-content hidden" data-tab="inject">
+                    <div class="ms-section-title">Last Injection Preview</div>
+                    <p class="ms-hint">Exact text added to the last prompt. Click a layer to expand.</p>
+                    <div id="ms-injection-preview">
+                        <p class="ms-hint" style="padding:4px 0;">Send a message to populate this view — it shows exactly what PAC added to the last prompt.</p>
+                    </div>
+                </div>
+
+                <!-- Tab: General -->
+                <div class="ms-tab-content hidden" data-tab="general">
+
+                    <div class="ms-section-title">Memory Budget</div>
+                    <p class="ms-hint">Total token budget shared across all memory types.</p>
+                    <div class="ms-row" style="gap:10px; align-items:center; margin-top:4px;">
+                        <input type="range" id="ms-budget-slider" min="200" max="4000" step="100" value="1200" style="flex:1;">
+                        <span id="ms-budget-slider-display" class="ms-budget-value" style="width:80px; text-align:right;">1,200 tk</span>
+                    </div>
+
+                    <div class="ms-section-title" style="margin-top:18px;">Always Injected</div>
+                    <p class="ms-hint">
+                        These layers always inject in full — they are not subject to the token budget.
+                        To reduce their size, edit them directly in their respective tabs.
+                    </p>
+                    <div class="ms-layer-min-row" style="margin-top:6px; opacity:0.7;">
+                        <span class="ms-layer-dot ms-dot-identity"></span>
+                        <span class="ms-layer-min-label">Your Active Persona</span>
+                        <span class="ms-hint" style="margin-left:auto;">always included</span>
+                    </div>
+                    <div class="ms-layer-min-row" style="opacity:0.7;">
+                        <span class="ms-layer-dot ms-dot-worldstate"></span>
+                        <span class="ms-layer-min-label">World State</span>
+                        <span class="ms-hint" style="margin-left:auto;">always included</span>
+                    </div>
+                    <div class="ms-layer-min-row" style="opacity:0.7;">
+                        <span class="ms-layer-dot ms-dot-char"></span>
+                        <span class="ms-layer-min-label">Character</span>
+                        <span class="ms-hint" style="margin-left:auto;">always included</span>
+                    </div>
+
+                    <div class="ms-section-title" style="margin-top:18px;">Minimum Reservations</div>
+                    <p class="ms-hint">
+                        Reserve a guaranteed minimum of the token budget for Story So Far and Memories.
+                        Budget fills in order: Story So Far first, then Memories with whatever remains.
+                    </p>
+                    <div class="ms-layer-min-row" style="margin-top:8px;">
+                        <span class="ms-layer-dot ms-dot-summary"></span>
+                        <span class="ms-layer-min-label">Story So Far</span>
+                        <input type="range" id="ms-min-summary" min="0" max="1000" step="50" value="0" style="flex:1;">
+                        <span id="ms-min-summary-display" class="ms-hint ms-layer-min-val">0 tk</span>
+                    </div>
+                    <div class="ms-layer-min-row">
+                        <span class="ms-layer-dot ms-dot-events"></span>
+                        <span class="ms-layer-min-label">Memories</span>
+                        <input type="range" id="ms-min-events" min="0" max="1000" step="50" value="0" style="flex:1;">
+                        <span id="ms-min-events-display" class="ms-hint ms-layer-min-val">0 tk</span>
+                    </div>
+                    <p id="ms-min-budget-warning" class="ms-hint hidden" style="color:var(--SmartThemeQuoteColor,#e67e22); margin-top:6px;">
+                        ⚠ Minimums exceed total budget — reduce them or increase the budget.
+                    </p>
+
+                    <div class="ms-section-title" style="margin-top:18px;">Consolidation Prompt</div>
+                    <p class="ms-hint">Used when consolidating memories. Must produce JSON with a <code>consolidations</code> array.</p>
+                    <textarea id="ms-consolidation-prompt" class="ms-textarea" rows="8"></textarea>
+                    <div class="ms-row" style="margin-top:4px;">
+                        <button id="ms-btn-reset-consolidation-prompt" class="menu_button">Reset to Default</button>
+                    </div>
+                </div>
+
+                <!-- Tab: Persona -->
+                <div class="ms-tab-content hidden" data-tab="persona">
+                    <div class="ms-section-title">Active Persona</div>
+                    <p class="ms-hint">Each persona is a separate save file — switching personas gives a completely fresh playthrough.</p>
+                    <div class="ms-row">
+                        <span class="ms-hint">Active:</span>
+                        <span id="ms-active-persona-id" class="ms-mono">(loading…)</span>
+                    </div>
+
+                    <div class="ms-section-title" style="margin-top:14px;">Known Personas</div>
+                    <div id="ms-persona-list" class="ms-persona-list">
+                        <p class="ms-hint" style="padding:4px 0;">Click the Persona tab to refresh.</p>
+                    </div>
+
+                    <div class="ms-section-title" style="margin-top:14px;">Backup &amp; Transfer</div>
+                    <p class="ms-hint">Export all memory for the active persona as a JSON file, or import a previously exported bundle.</p>
+                    <div class="ms-row" style="gap:6px; flex-wrap:wrap;">
+                        <button id="ms-btn-export-persona" class="menu_button">Export Memory</button>
+                        <button id="ms-btn-import-persona" class="menu_button">Import Memory</button>
+                        <input type="file" id="ms-import-file" accept=".json" style="display:none;">
+                    </div>
+                    <div class="ms-row" style="gap:6px; align-items:center;">
+                        <label class="checkbox_label" for="ms-import-overwrite">
+                            <input type="checkbox" id="ms-import-overwrite">
+                            <span>Overwrite existing files on import</span>
+                        </label>
+                    </div>
+
+                    <div class="ms-section-title" style="margin-top:14px;">Danger Zone</div>
+                    <p class="ms-hint">Permanently deletes all saved memory for the active persona.</p>
+                    <div class="ms-row">
+                        <button id="ms-btn-delete-persona" class="menu_button danger">Delete Active Persona Data</button>
+                    </div>
+                </div>
+
+            </div><!-- ms-advanced-panel -->
+
+        </div><!-- inline-drawer-content -->
+    </div><!-- inline-drawer -->
+</div>
