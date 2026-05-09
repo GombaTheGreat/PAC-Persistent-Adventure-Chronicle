@@ -206,9 +206,9 @@ For contributors and anyone building release zips — this is how the repository
 
 SillyTavern is brilliant for roleplay and collaborative storytelling with AI. But the amnesia between sessions breaks immersion in a way that's hard to paper over. You can write long system prompts that describe who you are — but they're static, they don't grow with your story, and maintaining them by hand becomes a real chore the longer a campaign runs.
 
-PAC is what we wanted to exist: something that quietly watches your story unfold, pulls out what matters, and makes sure your characters actually know you the next time you talk to them. The AI you've been building a campaign with should know you're the Champion of the Iron Circle before you have to tell it again.
+PAC is what I wanted to exist: something that quietly watches your story unfold, pulls out what matters, and makes sure your characters actually know you the next time you talk to them. The AI you've been building a campaign with should know you're the Champion of the Iron Circle before you have to tell it again.
 
-It's made for people who want their AI adventures to feel like they're going somewhere — where the characters you care about remember the journey.
+It's made for people who want their AI adventures to feel like they're going somewhere - where the characters you care about remember the journey.
 
 ---
 
