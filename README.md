@@ -6,7 +6,7 @@
 
 > A SillyTavern extension that gives your AI characters real, lasting memory across every chat session.
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/GombaTheGreat/pac/releases)
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/GombaTheGreat/PAC-Persistent-Adventure-Chronicle/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![SillyTavern](https://img.shields.io/badge/SillyTavern-extension-7c5cbf.svg)](https://sillytavern.app)
 
@@ -72,7 +72,7 @@ SillyTavern's built-in extension installer can install the client extension dire
 **Step 1 — Install the client extension**
 
 1. In SillyTavern, open **Extensions** → click **Install Extension**
-2. Paste the URL: `https://github.com/GombaTheGreat/pac`
+2. Paste the URL: `https://github.com/GombaTheGreat/PAC-Persistent-Adventure-Chronicle`
 3. Click Install and wait for it to complete
 
 > **Note:** This only installs the client extension. The server plugin always requires manual installation.
@@ -106,7 +106,7 @@ Go to **Extensions** (the puzzle piece icon) and make sure **Persistent Adventur
 
 ### Method B — Manual zip install
 
-1. Download the latest release zip from the [Releases](https://github.com/GombaTheGreat/pac/releases) page
+1. Download the latest release zip from the [Releases](https://github.com/GombaTheGreat/PAC-Persistent-Adventure-Chronicle/releases) page
 2. Extract into your **SillyTavern root folder** (the folder with `Start.bat` or `start.sh`). When prompted to merge folders, say **Yes**
 
 You should end up with:
