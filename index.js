@@ -85,14 +85,14 @@ const DEFAULT_SETTINGS = {
     eventTopK: 8,
     extraction: {
         enabled: true,
-        intervalMessages: 5,
+        intervalMessages: 30,
         requireApproval: true,
         prompt: DEFAULT_EXTRACTION_PROMPT,
     },
     summary: {
         prompt: DEFAULT_SUMMARY_PROMPT,
         targetWords: 200,
-        autoIntervalMessages: 30,
+        autoIntervalMessages: 40,
     },
     consolidation: {
         prompt: DEFAULT_CONSOLIDATION_PROMPT,
