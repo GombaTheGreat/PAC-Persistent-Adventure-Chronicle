@@ -924,6 +924,45 @@
       </div>
     </div>
 
+    <details style="max-width:640px; margin-top:32px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:20px 24px;">
+      <summary style="cursor:pointer; font-weight:600; color:var(--text); font-size:0.95rem; list-style:none; display:flex; align-items:center; gap:10px;">
+        <span style="color:var(--gold);">&#9660;</span> Manual install (from release zip)
+      </summary>
+      <div class="install-steps" style="margin-top:20px;">
+        <div class="install-step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h3>Download and extract the release zip</h3>
+            <p>Grab the latest zip from the <a href="https://github.com/GombaTheGreat/PAC-Persistent-Adventure-Chronicle/releases">Releases page</a> and extract its contents.</p>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h3>Copy the extension files</h3>
+            <p>Place the extracted files into a new <code>pac</code> folder inside your SillyTavern extensions directory:</p>
+            <div class="code-block">SillyTavern\data\default-user\extensions\pac\</div>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h3>Copy and rename the server-plugin folder</h3>
+            <p>Copy the <code>server-plugin</code> folder into <code>SillyTavern\plugins\</code> and rename it to <code>pac</code>:</p>
+            <div class="code-block">SillyTavern\plugins\pac\</div>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h3>Enable server plugins &amp; restart</h3>
+            <p>Add <code>enableServerPlugins: true</code> to <code>config.yaml</code>, then fully restart SillyTavern.</p>
+          </div>
+        </div>
+      </div>
+      <p style="margin-top:16px; font-size:0.85rem; color:var(--text-dim);">Non-default username? Place the extension under <code>data\YOUR-USERNAME\extensions\pac\</code> instead.</p>
+    </details>
+
     <div style="margin-top: 48px; max-width: 540px;">
       <h3 style="margin-bottom: 16px; color: var(--gold-light);">First-time setup — world tags</h3>
       <p style="color: var(--text-muted); margin-bottom: 20px;">

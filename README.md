@@ -88,6 +88,27 @@ Everything runs automatically. Just play. PAC builds up your story behind the sc
 
 PAC will appear in your Extensions sidebar. If the status bar shows **"No world tag detected"**, see the First-Time Setup section below.
 
+### Manual install (from release zip)
+
+If you prefer to install from the [release zip](https://github.com/GombaTheGreat/PAC-Persistent-Adventure-Chronicle/releases) rather than the extension installer:
+
+1. Download the zip and extract its contents
+2. Copy the extracted files into `SillyTavern\data\default-user\extensions\` inside a new folder called `pac`:
+   ```
+   SillyTavern\data\default-user\extensions\pac\
+   ```
+3. Copy the `server-plugin` folder into `SillyTavern\plugins\` and rename it to `pac`:
+   ```
+   SillyTavern\plugins\pac\
+   ```
+4. Open `SillyTavern\config.yaml` and make sure this line is present:
+   ```yaml
+   enableServerPlugins: true
+   ```
+5. Fully restart SillyTavern
+
+> **Non-default username?** If your SillyTavern username isn't `default-user`, place the extension folder under `data\YOUR-USERNAME\extensions\pac\` instead.
+
 ---
 
 ## First-Time Setup — World Tags
