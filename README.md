@@ -10,6 +10,12 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![SillyTavern](https://img.shields.io/badge/SillyTavern-extension-7c5cbf.svg)](https://sillytavern.app)
 
+<p align="center">
+  <a href="https://gombathegreat.github.io/PAC-Persistent-Adventure-Chronicle/">
+    <img src="https://img.shields.io/badge/🌐%20View%20Showcase%20Page-Visit-c8941f?style=for-the-badge" alt="View Showcase Page" />
+  </a>
+</p>
+
 ---
 
 ## The Problem
