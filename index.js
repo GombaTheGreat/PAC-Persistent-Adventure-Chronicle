@@ -958,7 +958,8 @@ async function generateSummaryForCurrentChar({ silent = false } = {}) {
 // ---------------------------------------------------------------------------
 
 async function initSettingsPanel() {
-    const settingsHtml = await renderExtensionTemplateAsync('third-party/pac', 'settings');
+    const extensionFolderPath = `third-party/${import.meta.url.split('/').at(-2)}`;
+    const settingsHtml = await renderExtensionTemplateAsync(extensionFolderPath, 'settings');
     $('#extensions_settings').append(settingsHtml);
     bindSettingsEvents();
     populateSettingsPanel();
