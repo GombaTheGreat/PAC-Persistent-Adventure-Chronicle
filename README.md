@@ -86,7 +86,7 @@ PAC will appear in your Extensions sidebar. If the status bar shows **"No world 
 
 ## First-Time Setup — World Tags
 
-**This is the most important step.** PAC only activates for characters that belong to a recognised world — this scoping prevents it from accidentally building memory for every character you open.
+**This is the most important step.** PAC needs to know which world or setting you're currently in so it can save your persona's story, world events, and character knowledge to the right place — and keep them separate from other settings. This is what world tags do: they tell PAC "we're in this world right now." Both the character card and PAC's world tag list need to have a matching tag for PAC to activate.
 
 **Three steps:**
 
