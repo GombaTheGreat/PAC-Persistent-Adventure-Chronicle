@@ -63,66 +63,24 @@ Everything runs automatically. Just play. PAC builds up your story behind the sc
 
 ## Installation
 
-PAC has **two parts**: the client extension (UI and logic) and a server plugin (storage and keyword search). Both must be installed.
+1. In SillyTavern, go to **Extensions** → **Install Extension**
+2. Paste the repo link and click Install:
+   ```
+   https://github.com/GombaTheGreat/PAC-Persistent-Adventure-Chronicle
+   ```
+3. Copy the `server-plugin` folder from:
+   ```
+   SillyTavern\data\default-user\extensions\PAC-Persistent-Adventure-Chronicle\server-plugin
+   ```
+   into your `SillyTavern\plugins\` folder
+4. Rename the copied folder from `server-plugin` to `pac`
+5. Open `SillyTavern\config.yaml` and make sure this line is present:
+   ```yaml
+   enableServerPlugins: true
+   ```
+6. Fully restart SillyTavern — close and reopen, don't just refresh the browser
 
-### Method A — GitHub "Install Extension" + manual plugin
-
-SillyTavern's built-in extension installer can install the client extension directly from this repo:
-
-**Step 1 — Install the client extension**
-
-1. In SillyTavern, open **Extensions** → click **Install Extension**
-2. Paste the URL: `https://github.com/GombaTheGreat/PAC-Persistent-Adventure-Chronicle`
-3. Click Install and wait for it to complete
-
-> **Note:** This only installs the client extension. SillyTavern will create the folder automatically as `PAC-Persistent-Adventure-Chronicle` — you don't need to name it yourself. The server plugin always requires manual installation.
-
-**Step 2 — Install the server plugin manually**
-
-Copy the `server-plugin/` folder from this repo into your SillyTavern `plugins/` directory, and name it exactly `pac`:
-
-```
-SillyTavern/
-└── plugins/
-    └── pac/             ← must be named exactly "pac"
-        └── index.mjs
-```
-
-> **Important:** The plugin folder must be named `pac` — this is not the same as the extension folder name. SillyTavern uses the folder name to register the API routes, and PAC's extension code expects them at `/api/plugins/pac/`. Naming it anything else will break the connection between the extension and the plugin.
-
-**Step 3 — Enable server plugins**
-
-Open `config.yaml` in your SillyTavern root folder and confirm this line exists (add it if not):
-
-```yaml
-enableServerPlugins: true
-```
-
-**Step 4 — Restart SillyTavern** fully — close and reopen, don't just refresh the browser.
-
-**Step 5 — Enable PAC in SillyTavern**
-
-Go to **Extensions** (the puzzle piece icon) and make sure **Persistent Adventure Chronicle** is enabled. A PAC panel will appear in your Extensions sidebar.
-
----
-
-### Method B — Manual zip install
-
-1. Download the latest release zip from the [Releases](https://github.com/GombaTheGreat/PAC-Persistent-Adventure-Chronicle/releases) page
-2. Extract into your **SillyTavern root folder** (the folder with `Start.bat` or `start.sh`). When prompted to merge folders, say **Yes**
-
-You should end up with:
-```
-SillyTavern/
-├── data/default-user/extensions/pac/   ← the client extension
-└── plugins/pac/                         ← the server plugin (must be named "pac")
-```
-
-3. Add `enableServerPlugins: true` to `config.yaml`
-4. Restart SillyTavern fully
-5. Enable **Persistent Adventure Chronicle** in Extensions
-
-> **Non-default username?** If your SillyTavern username isn't `default-user`, also copy the `extensions/pac/` folder from `data/default-user/` into `data/YOUR-USERNAME/extensions/`.
+PAC will appear in your Extensions sidebar. If the status bar shows **"No world tag detected"**, see the First-Time Setup section below.
 
 ---
 

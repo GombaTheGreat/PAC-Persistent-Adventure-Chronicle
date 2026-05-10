@@ -874,100 +874,53 @@
 <section id="install">
   <div class="container">
     <h2>Installation</h2>
-    <p class="section-intro">PAC has two parts: the client extension and a server plugin. Both must be installed.</p>
+    <p class="section-intro">Six steps — done in under two minutes.</p>
 
-    <div class="callout callout-warn" style="margin-bottom: 28px; max-width: 640px;">
-      <strong>Important:</strong> The server plugin cannot be installed automatically — it always requires a manual step regardless of which installation method you use. SillyTavern must be restarted after both parts are in place.
-    </div>
-
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab(event, 'tab-github')">GitHub Install Extension</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-manual')">Manual zip install</button>
-    </div>
-
-    <div id="tab-github" class="tab-panel active">
-      <div class="install-steps">
-        <div class="install-step">
-          <div class="step-num">1</div>
-          <div class="step-body">
-            <h3>Install the client extension via SillyTavern</h3>
-            <p>In SillyTavern, open <strong>Extensions → Install Extension</strong>, paste the URL below, and click Install. SillyTavern will create the extension folder automatically as <code>PAC-Persistent-Adventure-Chronicle</code>.</p>
-            <div class="code-block">https://github.com/GombaTheGreat/PAC-Persistent-Adventure-Chronicle</div>
-          </div>
-        </div>
-        <div class="install-step">
-          <div class="step-num">2</div>
-          <div class="step-body">
-            <h3>Manually install the server plugin</h3>
-            <p>Download or clone this repo and copy the <code>server-plugin/</code> folder into your SillyTavern plugins directory, named exactly <code>pac</code>:</p>
-            <div class="code-block">SillyTavern/
-└── plugins/
-    └── pac/        ← must be named exactly "pac"
-        └── index.mjs</div>
-            <p style="margin-top:8px;font-size:0.85rem;color:var(--text-dim);">The plugin folder name must be <code>pac</code> — SillyTavern uses it to register API routes, and the extension expects them at <code>/api/plugins/pac/</code>.</p>
-          </div>
-        </div>
-        <div class="install-step">
-          <div class="step-num">3</div>
-          <div class="step-body">
-            <h3>Enable server plugins in config.yaml</h3>
-            <p>Open <code>config.yaml</code> in your SillyTavern root and add or confirm:</p>
-            <div class="code-block">enableServerPlugins: true</div>
-          </div>
-        </div>
-        <div class="install-step">
-          <div class="step-num">4</div>
-          <div class="step-body">
-            <h3>Restart SillyTavern fully</h3>
-            <p>Close and reopen SillyTavern — don't just refresh the browser tab. The server plugin loads on startup.</p>
-          </div>
-        </div>
-        <div class="install-step">
-          <div class="step-num">5</div>
-          <div class="step-body">
-            <h3>Enable PAC in Extensions</h3>
-            <p>Go to <strong>Extensions</strong> (puzzle piece icon) and make sure <strong>Persistent Adventure Chronicle</strong> is toggled on. A PAC panel will appear in your sidebar.</p>
-          </div>
+    <div class="install-steps" style="max-width:640px;">
+      <div class="install-step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>Go to Install Extension in SillyTavern</h3>
+          <p>Open <strong>Extensions</strong> (puzzle piece icon) → click <strong>Install Extension</strong>.</p>
         </div>
       </div>
-    </div>
-
-    <div id="tab-manual" class="tab-panel">
-      <div class="install-steps">
-        <div class="install-step">
-          <div class="step-num">1</div>
-          <div class="step-body">
-            <h3>Download the release zip</h3>
-            <p>Grab the latest zip from the <a href="https://github.com/GombaTheGreat/PAC-Persistent-Adventure-Chronicle/releases">Releases page</a>.</p>
-          </div>
-        </div>
-        <div class="install-step">
-          <div class="step-num">2</div>
-          <div class="step-body">
-            <h3>Extract into your SillyTavern root folder</h3>
-            <p>The SillyTavern root is the folder containing <code>Start.bat</code> or <code>start.sh</code>. When prompted to merge folders, say <strong>Yes</strong>.</p>
-            <div class="code-block">SillyTavern/
-├── data/default-user/extensions/pac/   ← client extension
-└── plugins/pac/                         ← server plugin</div>
-          </div>
-        </div>
-        <div class="install-step">
-          <div class="step-num">3</div>
-          <div class="step-body">
-            <h3>Enable server plugins &amp; restart</h3>
-            <p>Add <code>enableServerPlugins: true</code> to <code>config.yaml</code>, then restart SillyTavern fully.</p>
-          </div>
-        </div>
-        <div class="install-step">
-          <div class="step-num">4</div>
-          <div class="step-body">
-            <h3>Enable PAC in Extensions</h3>
-            <p>Toggle on <strong>Persistent Adventure Chronicle</strong> in the Extensions panel.</p>
-          </div>
+      <div class="install-step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>Paste the repo link and install</h3>
+          <div class="code-block">https://github.com/GombaTheGreat/PAC-Persistent-Adventure-Chronicle</div>
         </div>
       </div>
-      <div class="callout" style="max-width: 560px;">
-        <strong>Non-default username?</strong> If you've changed your SillyTavern username from the default, also copy <code>extensions/pac/</code> from <code>data/default-user/</code> into <code>data/YOUR-USERNAME/extensions/</code>.
+      <div class="install-step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>Copy the server-plugin folder</h3>
+          <p>Copy this folder:</p>
+          <div class="code-block">SillyTavern\data\default-user\extensions\PAC-Persistent-Adventure-Chronicle\server-plugin</div>
+          <p style="margin-top:8px;">into your <code>SillyTavern\plugins\</code> folder.</p>
+        </div>
+      </div>
+      <div class="install-step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h3>Rename the copied folder to <code>pac</code></h3>
+          <p>The folder must be named exactly <code>pac</code> — this is what PAC uses to connect to its own API.</p>
+        </div>
+      </div>
+      <div class="install-step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h3>Enable server plugins in config.yaml</h3>
+          <p>Open <code>SillyTavern\config.yaml</code> and make sure this line is present:</p>
+          <div class="code-block">enableServerPlugins: true</div>
+        </div>
+      </div>
+      <div class="install-step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <h3>Restart SillyTavern fully</h3>
+          <p>Close and reopen — don't just refresh the browser. PAC will appear in your Extensions sidebar.</p>
+        </div>
       </div>
     </div>
 
