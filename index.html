@@ -891,7 +891,7 @@
           <div class="step-num">1</div>
           <div class="step-body">
             <h3>Install the client extension via SillyTavern</h3>
-            <p>In SillyTavern, open <strong>Extensions → Install Extension</strong>, paste the URL below, and click Install.</p>
+            <p>In SillyTavern, open <strong>Extensions → Install Extension</strong>, paste the URL below, and click Install. SillyTavern will create the extension folder automatically as <code>PAC-Persistent-Adventure-Chronicle</code>.</p>
             <div class="code-block">https://github.com/GombaTheGreat/PAC-Persistent-Adventure-Chronicle</div>
           </div>
         </div>
@@ -899,11 +899,12 @@
           <div class="step-num">2</div>
           <div class="step-body">
             <h3>Manually install the server plugin</h3>
-            <p>Download or clone this repo and copy the <code>server-plugin/</code> folder into your SillyTavern plugins directory:</p>
+            <p>Download or clone this repo and copy the <code>server-plugin/</code> folder into your SillyTavern plugins directory, named exactly <code>pac</code>:</p>
             <div class="code-block">SillyTavern/
 └── plugins/
-    └── pac/
+    └── pac/        ← must be named exactly "pac"
         └── index.mjs</div>
+            <p style="margin-top:8px;font-size:0.85rem;color:var(--text-dim);">The plugin folder name must be <code>pac</code> — SillyTavern uses it to register API routes, and the extension expects them at <code>/api/plugins/pac/</code>.</p>
           </div>
         </div>
         <div class="install-step">

@@ -75,18 +75,20 @@ SillyTavern's built-in extension installer can install the client extension dire
 2. Paste the URL: `https://github.com/GombaTheGreat/PAC-Persistent-Adventure-Chronicle`
 3. Click Install and wait for it to complete
 
-> **Note:** This only installs the client extension. The server plugin always requires manual installation.
+> **Note:** This only installs the client extension. SillyTavern will create the folder automatically as `PAC-Persistent-Adventure-Chronicle` — you don't need to name it yourself. The server plugin always requires manual installation.
 
 **Step 2 — Install the server plugin manually**
 
-Copy the `server-plugin/` folder from this repo into your SillyTavern `plugins/` directory:
+Copy the `server-plugin/` folder from this repo into your SillyTavern `plugins/` directory, and name it exactly `pac`:
 
 ```
 SillyTavern/
 └── plugins/
-    └── pac/
-        └── index.mjs    ← this file
+    └── pac/             ← must be named exactly "pac"
+        └── index.mjs
 ```
+
+> **Important:** The plugin folder must be named `pac` — this is not the same as the extension folder name. SillyTavern uses the folder name to register the API routes, and PAC's extension code expects them at `/api/plugins/pac/`. Naming it anything else will break the connection between the extension and the plugin.
 
 **Step 3 — Enable server plugins**
 
@@ -113,7 +115,7 @@ You should end up with:
 ```
 SillyTavern/
 ├── data/default-user/extensions/pac/   ← the client extension
-└── plugins/pac/                         ← the server plugin
+└── plugins/pac/                         ← the server plugin (must be named "pac")
 ```
 
 3. Add `enableServerPlugins: true` to `config.yaml`
