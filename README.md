@@ -40,9 +40,9 @@ Everything runs automatically. Just play. PAC builds up your story behind the sc
 
 ## Key Features
 
-- **Auto-extraction** — after every 5 AI responses, PAC asks your AI to classify what happened and propose new memory entries
+- **Auto-extraction** — after every 30 AI responses, PAC asks your AI to classify what happened and propose new memory entries
 - **Approval dialogs** — before anything gets saved, you see exactly what was found and can tick/untick items
-- **Session summaries** — every 30 messages, a compressed recap is generated and stored automatically
+- **Session summaries** — every 40 AI responses, a compressed recap is generated and stored automatically
 - **Hybrid memory search** — BM25 keyword search + optional semantic vector embeddings, merged with Reciprocal Rank Fusion
 - **Persistent World mode** — share world/character memory across multiple personas; each persona's personal profile stays private
 - **Memory consolidation** — intelligently merge groups of related memories to prevent log bloat over long campaigns
