@@ -162,7 +162,7 @@ For contributors and anyone building release zips — this is how the repository
 
 ---
 
-## Why We Made This
+## Why I Made This
 
 SillyTavern is brilliant for roleplay and collaborative storytelling with AI. But the amnesia between sessions breaks immersion in a way that's hard to paper over. You can write long system prompts that describe who you are — but they're static, they don't grow with your story, and maintaining them by hand becomes a real chore the longer a campaign runs.
 
