@@ -118,7 +118,7 @@ If you prefer to install from the [release zip](https://github.com/GombaTheGreat
 **Three steps:**
 
 1. **In PAC → General tab**, scroll to **World Tags** and add a name for your campaign world (e.g. `Eldoria`)
-2. **Open the character** you want to track in SillyTavern's character editor and add the same word as a tag
+2. **Open the character** in SillyTavern's character editor → go to **Advanced Definitions** → add the same word under **Tags to embed**
 3. **Open a chat** with that character — the PAC status bar will show the world name and begin tracking
 
 The status bar looks like this when active:
