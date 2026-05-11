@@ -46,9 +46,13 @@ Everything runs automatically. Just play. PAC builds up your story behind the sc
 
 ## Key Features
 
-- **Auto-extraction** — after every 30 AI responses, PAC asks your AI to classify what happened and propose new memory entries
+- **Auto-extraction** — every N messages (default 50), PAC asks your AI to classify the last N messages and propose new memory entries
 - **Approval dialogs** — before anything gets saved, you see exactly what was found and can tick/untick items
-- **Session summaries** — every 40 AI responses, a compressed recap is generated and stored automatically
+- **Run Full Extraction** — reads your entire chat history in one pass; ideal for bootstrapping memory on long existing chats
+- **Session summaries** — every 50 AI responses a compressed recap is generated and stored; only the most recent summary is injected into context
+- **Create Story Synopsis** — manually trigger a summary of your entire chat history at your configured word count
+- **Merge All Summaries** — joins all stored summaries oldest-to-newest into one entry, no LLM involved; preserves the full accumulated narrative
+- **Inline memory editing** — edit any stored memory entry directly in the Memories tab
 - **Hybrid memory search** — BM25 keyword search + optional semantic vector embeddings, merged with Reciprocal Rank Fusion
 - **Persistent World mode** — share world/character memory across multiple personas; each persona's personal profile stays private
 - **Memory consolidation** — intelligently merge groups of related memories to prevent log bloat over long campaigns
@@ -129,6 +133,22 @@ The status bar looks like this when active:
 If it says **"No world tag detected"**, the character card doesn't have a matching tag yet.
 
 > **Tip:** Give multiple characters the same world tag to share memory across all of them — the world state and character histories link up automatically.
+
+---
+
+## Getting Started with Long Existing Chats
+
+If you're installing PAC on a chat that already has hundreds of messages, the auto-extraction will eventually catch up — but you don't have to wait. Two tools let you bootstrap your memory system instantly:
+
+**Step 1 — Run Full Extraction** *(Extraction tab)*
+
+Reads your entire chat history in one pass and extracts everything: your persona facts, world state, character knowledge, and episodic memories. For very long chats this may take a moment. You'll see an approval dialog before anything is saved.
+
+**Step 2 — Create Story Synopsis** *(Story So Far tab)*
+
+Generates a summary of your entire chat history at your configured word count. This becomes the injected "previously on…" that the AI reads before every future response. For long chats, consider raising your word count (e.g. 400–600) before generating so more of the story fits.
+
+After these two steps your memory system is fully primed — PAC will continue building on it automatically from that point forward.
 
 ---
 
