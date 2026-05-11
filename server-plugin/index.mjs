@@ -385,6 +385,21 @@ export async function init(router) {
         res.json({ deleted: index, remaining: records.length });
     });
 
+    router.patch('/personas/:avatarId/worlds/:worldTag/characters/:name/events/:index', (req, res) => {
+        const avatarId = sanitizeName(req.params.avatarId);
+        const worldTag = sanitizeName(req.params.worldTag);
+        const name     = sanitizeName(req.params.name);
+        const index    = parseInt(req.params.index, 10);
+        if (!avatarId || !worldTag || !name || isNaN(index) || index < 0) return res.status(400).json({ error: 'Invalid params' });
+        if (typeof req.body.event !== 'string') return res.status(400).json({ error: 'event must be a string' });
+        const file    = path.join(worldCharRoot(req, avatarId, worldTag, name), 'events.jsonl');
+        const records = readJsonl(file);
+        if (index >= records.length) return res.status(404).json({ error: 'Index out of range' });
+        records[index] = { ...records[index], event: req.body.event };
+        writeJsonl(file, records);
+        res.json(records[index]);
+    });
+
     // -----------------------------------------------------------------------
     // Character summaries (world-scoped)
     // -----------------------------------------------------------------------
@@ -688,6 +703,20 @@ export async function init(router) {
         records.splice(index, 1);
         writeJsonl(file, records);
         res.json({ deleted: index, remaining: records.length });
+    });
+
+    router.patch('/worlds/:worldTag/characters/:name/events/:index', (req, res) => {
+        const worldTag = sanitizeName(req.params.worldTag);
+        const name     = sanitizeName(req.params.name);
+        const index    = parseInt(req.params.index, 10);
+        if (!worldTag || !name || isNaN(index) || index < 0) return res.status(400).json({ error: 'Invalid params' });
+        if (typeof req.body.event !== 'string') return res.status(400).json({ error: 'event must be a string' });
+        const file    = path.join(sharedCharRoot(req, worldTag, name), 'events.jsonl');
+        const records = readJsonl(file);
+        if (index >= records.length) return res.status(404).json({ error: 'Index out of range' });
+        records[index] = { ...records[index], event: req.body.event };
+        writeJsonl(file, records);
+        res.json(records[index]);
     });
 
     router.post('/worlds/:worldTag/characters/:name/events/bulk-delete', (req, res) => {

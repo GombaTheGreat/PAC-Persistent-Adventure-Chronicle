@@ -82,7 +82,7 @@ export async function runExtraction(messages, systemPrompt = DEFAULT_EXTRACTION_
         const raw = await generateRaw({
             prompt: transcript,
             systemPrompt: effectivePrompt,
-            responseLength: 10000,  // generous ceiling for thinking models — CoT can run 3-5k tokens before JSON output
+            responseLength: 20000,  // generous ceiling for thinking models and full-history extractions
         });
 
         if (!raw) return null;

@@ -193,9 +193,9 @@ export async function buildAndInjectContext(context, avatarId, worldTag, persist
     if (settings.inject?.summary !== false) {
         try {
             const summaries = persistentWorld
-                ? await loadSharedSummaries(worldTag, characterName, 2)
-                : await loadSummaries(avatarId, worldTag, characterName, 2);
-            const text = formatSummaries(summaries, 2);
+                ? await loadSharedSummaries(worldTag, characterName, 1)
+                : await loadSummaries(avatarId, worldTag, characterName, 1);
+            const text = formatSummaries(summaries, 1);
             const summaryBudget = Math.max(minSumm, budget - used - minEvts);
             if (text && est(text) <= summaryBudget) {
                 setExtensionPrompt(KEY_SUMMARY, text, IN_PROMPT, 1, false, SYSTEM);

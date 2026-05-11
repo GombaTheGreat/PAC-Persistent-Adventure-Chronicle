@@ -24,13 +24,13 @@ export const DEFAULT_SUMMARY_PROMPT =
  * @param {number} targetWords
  * @returns {Promise<string|null>}
  */
-export async function generateSessionSummary(avatarId, worldTag, characterName, chatMessages, chatId, promptTemplate = DEFAULT_SUMMARY_PROMPT, targetWords = 200) {
+export async function generateSessionSummary(avatarId, worldTag, characterName, chatMessages, chatId, promptTemplate = DEFAULT_SUMMARY_PROMPT, targetWords = 200, windowMessages = 60) {
     if (!chatMessages?.length) return null;
 
     const systemPrompt = promptTemplate.replace('{{words}}', String(targetWords));
 
     const transcript = chatMessages
-        .slice(-60)
+        .slice(-windowMessages)
         .filter(m => m.mes && m.mes.trim().length > 5)
         .map(m => `${m.name}: ${m.mes.trim()}`)
         .join('\n');
@@ -69,12 +69,12 @@ export async function generateSessionSummary(avatarId, worldTag, characterName, 
  * @param {number} targetWords
  * @returns {Promise<string|null>}
  */
-export async function generateSharedSessionSummary(worldTag, characterName, chatMessages, chatId, promptTemplate = DEFAULT_SUMMARY_PROMPT, targetWords = 200) {
+export async function generateSharedSessionSummary(worldTag, characterName, chatMessages, chatId, promptTemplate = DEFAULT_SUMMARY_PROMPT, targetWords = 200, windowMessages = 60) {
     if (!chatMessages?.length) return null;
 
     const systemPrompt = promptTemplate.replace('{{words}}', String(targetWords));
     const transcript = chatMessages
-        .slice(-60)
+        .slice(-windowMessages)
         .filter(m => m.mes && m.mes.trim().length > 5)
         .map(m => `${m.name}: ${m.mes.trim()}`)
         .join('\n');

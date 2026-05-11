@@ -23,9 +23,9 @@ import { purgeEventVectors, rebuildEventIndex } from './src/vector-store.js';
 import { generateSessionSummary, generateSharedSessionSummary, DEFAULT_SUMMARY_PROMPT } from './src/summary.js';
 import { runExtraction, hasContent, showApprovalDialog, DEFAULT_EXTRACTION_PROMPT } from './src/extractor.js';
 import { buildAndInjectContext, clearInjections } from './src/injector.js';
-import { healthCheck, listPersonas, deletePersonaData, exportPersona, importPersona, getWorldList, deleteWorld, deleteCharData, getEvents, appendEvent, deleteEvent, clearEvents, bulkDeleteEvents, getSummaries, deleteSummary, clearSummaries, updateSummary,
-    getSharedEvents, appendSharedEvent, bulkDeleteSharedEvents, getSharedSummaries,
-    deleteSharedEvent, clearSharedEvents, deleteSharedSummary, clearSharedSummaries, updateSharedSummary } from './src/api.js';
+import { healthCheck, listPersonas, deletePersonaData, exportPersona, importPersona, getWorldList, deleteWorld, deleteCharData, getEvents, appendEvent, deleteEvent, clearEvents, bulkDeleteEvents, updateEvent, getSummaries, appendSummary, deleteSummary, clearSummaries, updateSummary,
+    getSharedEvents, appendSharedEvent, bulkDeleteSharedEvents, getSharedSummaries, appendSharedSummary,
+    deleteSharedEvent, clearSharedEvents, deleteSharedSummary, clearSharedSummaries, updateSharedSummary, updateSharedEvent } from './src/api.js';
 
 const MODULE_NAME = 'pac';
 
@@ -92,7 +92,8 @@ const DEFAULT_SETTINGS = {
     summary: {
         prompt: DEFAULT_SUMMARY_PROMPT,
         targetWords: 200,
-        autoIntervalMessages: 40,
+        autoIntervalMessages: 50,
+        summaryWindowMessages: 50,
     },
     consolidation: {
         prompt: DEFAULT_CONSOLIDATION_PROMPT,
@@ -522,7 +523,7 @@ async function onBeforeGenerate() {
 // Extraction flow
 // ---------------------------------------------------------------------------
 
-async function triggerExtraction() {
+async function triggerExtraction({ fullHistory = false } = {}) {
     if (isExtracting || !currentWorldTag) return;
     isExtracting = true;
 
@@ -533,7 +534,7 @@ async function triggerExtraction() {
 
     // Visual indicator: update status bar while extraction runs
     const prevStatus = $('#ms-memory-status').text();
-    $('#ms-memory-status').text('Extracting memory…');
+    $('#ms-memory-status').text(fullHistory ? 'Full extraction running…' : 'Extracting memory…');
 
     try {
         const context = getContext();
@@ -544,7 +545,7 @@ async function triggerExtraction() {
         const narratorMode = isNarratorChar(characterName);
 
         const settings = getSettings();
-        const lastN = settings.extraction.intervalMessages * 2;
+        const lastN = fullHistory ? 9999 : settings.extraction.intervalMessages;
         const recentMessages = (context.chat || []).slice(-lastN);
 
         // Pass speaker attribution so the extraction LLM knows which name is the AI character
@@ -565,10 +566,8 @@ async function triggerExtraction() {
         // Regular chars attribute to themselves as before.
         let targetChars;
         if (narratorMode) {
-            // Use a wider window for participant detection than the LLM extraction window.
-            // The extraction window (lastN = intervalMessages * 2) is intentionally tight to keep
-            // the LLM prompt focused. For participant detection we need a wider view so group
-            // members who haven't spoken in the last few turns are still attributed events.
+            // Use a wider window for participant detection than the LLM extraction window
+            // so group members who haven't spoken recently are still attributed events.
             // Fixed 3× multiplier — avoids relying on context.characters.length, which is the
             // full character library (potentially hundreds of cards), not just the group members.
             const participantMessages = (context.chat || []).slice(-(lastN * 3));
@@ -926,16 +925,17 @@ async function generateSummaryForCurrentChar({ silent = false } = {}) {
     try {
         const settings = getSettings();
         const { persistentWorld } = getWorldSettings(worldTag);
+        const msgWindow = settings.summary.summaryWindowMessages || 50;
         const summary = persistentWorld
             ? await generateSharedSessionSummary(
                 worldTag, characterName,
                 context.chat, context.chatId,
-                settings.summary.prompt, settings.summary.targetWords,
+                settings.summary.prompt, settings.summary.targetWords, msgWindow,
             )
             : await generateSessionSummary(
                 avatarId, worldTag, characterName,
                 context.chat, context.chatId,
-                settings.summary.prompt, settings.summary.targetWords,
+                settings.summary.prompt, settings.summary.targetWords, msgWindow,
             );
 
         if (summary) {
@@ -950,6 +950,83 @@ async function generateSummaryForCurrentChar({ silent = false } = {}) {
         }
     } finally {
         isGeneratingSummary = false;
+    }
+}
+
+async function generateStorySynopsis() {
+    if (!currentWorldTag) { toastr.warning('No world tag detected.'); return; }
+    if (isGeneratingSummary) { toastr.warning('Already generating a summary.'); return; }
+
+    const context = getContext();
+    const characterName = resolveCurrentCharName();
+    if (!characterName) { toastr.warning('No character selected.'); return; }
+    if (isNarratorChar(characterName)) { toastr.info('Narrator character — no summary saved.'); return; }
+
+    const avatarId  = currentPersonaId || resolvePersonaId();
+    const worldTag  = currentWorldTag;
+    const settings  = getSettings();
+    const { persistentWorld } = getWorldSettings(worldTag);
+
+    isGeneratingSummary = true;
+    toastr.info('Generating story synopsis (full chat history)...');
+
+    try {
+        const summary = persistentWorld
+            ? await generateSharedSessionSummary(
+                worldTag, characterName,
+                context.chat, context.chatId,
+                settings.summary.prompt, settings.summary.targetWords, 9999,
+              )
+            : await generateSessionSummary(
+                avatarId, worldTag, characterName,
+                context.chat, context.chatId,
+                settings.summary.prompt, settings.summary.targetWords, 9999,
+              );
+
+        if (summary) {
+            lastSummaryGeneratedAt = Date.now();
+            toastr.success('Story synopsis saved.');
+            updateMemoryStatus().catch(() => {});
+            if ($('.ms-tab[data-tab="summary"]').hasClass('active')) loadSummaryList();
+        } else {
+            toastr.error('Synopsis generation failed.');
+        }
+    } finally {
+        isGeneratingSummary = false;
+    }
+}
+
+async function mergeSummaries() {
+    if (!currentWorldTag) { toastr.warning('No world tag detected.'); return; }
+    const characterName = resolveCurrentCharName();
+    if (!characterName) { toastr.warning('No character selected.'); return; }
+
+    const avatarId = currentPersonaId || resolvePersonaId();
+    const { persistentWorld } = getWorldSettings(currentWorldTag);
+
+    const all = persistentWorld
+        ? await getSharedSummaries(currentWorldTag, characterName, { limit: 1000 })
+        : await getSummaries(avatarId, currentWorldTag, characterName, { limit: 1000 });
+
+    if (!all?.length) { toastr.warning('No summaries to merge.'); return; }
+    if (all.length < 2) { toastr.info('Only one summary exists — nothing to merge.'); return; }
+
+    // Concatenate oldest → newest, no LLM involved
+    const merged = all.map(s => s.summary).join('\n\n');
+
+    try {
+        const context = getContext();
+        if (persistentWorld) {
+            await clearSharedSummaries(currentWorldTag, characterName);
+            await appendSharedSummary(currentWorldTag, characterName, { chatId: context.chatId, summary: merged, messageCount: context.chat.length });
+        } else {
+            await clearSummaries(avatarId, currentWorldTag, characterName);
+            await appendSummary(avatarId, currentWorldTag, characterName, { chatId: context.chatId, summary: merged, messageCount: context.chat.length });
+        }
+        toastr.success(`${all.length} summaries merged.`);
+        await loadSummaryList();
+    } catch {
+        toastr.error('Failed to merge summaries.');
     }
 }
 
@@ -1462,6 +1539,10 @@ function bindSettingsEvents() {
         messagesSinceLastExtraction = 0;
         triggerExtraction();
     });
+    $(document).on('click', '#ms-btn-full-extraction', () => {
+        messagesSinceLastExtraction = 0;
+        triggerExtraction({ fullHistory: true });
+    });
 
     // Summary settings
     $(document).on('input', '#ms-summary-words', function () {
@@ -1475,6 +1556,12 @@ function bindSettingsEvents() {
         $('#ms-summary-interval-display').text(summaryIntervalLabel(val));
         saveSettingsDebounced();
     });
+    $(document).on('input', '#ms-summary-window', function () {
+        getSettings().summary.summaryWindowMessages = parseInt($(this).val()) || 50;
+        saveSettingsDebounced();
+    });
+    $(document).on('click', '#ms-btn-story-synopsis', () => generateStorySynopsis());
+    $(document).on('click', '#ms-btn-merge-summaries', () => mergeSummaries());
     $(document).on('input', '#ms-summary-prompt', function () {
         getSettings().summary.prompt = $(this).val();
         saveSettingsDebounced();
@@ -1519,6 +1606,54 @@ function bindSettingsEvents() {
     $(document).on('click', '#ms-events-list .ms-viewer-delete', function () {
         const index = parseInt($(this).data('index'));
         if (!isNaN(index)) deleteEventEntry(index);
+    });
+    // Memory inline edit — enter edit mode
+    $(document).on('click', '#ms-events-list .ms-viewer-edit', function (e) {
+        e.stopPropagation();
+        const $item = $(this).closest('.ms-viewer-item');
+        if ($item.hasClass('editing')) return;
+        const currentText = $item.find('.ms-viewer-text').text();
+        $item.addClass('editing');
+        $item.find('.ms-viewer-edit').hide();
+        const $actions = $(`
+            <div class="ms-event-edit-actions">
+                <button class="ms-event-edit-btn save" data-index="${$(this).data('index')}">Save</button>
+                <button class="ms-event-edit-btn cancel">Cancel</button>
+            </div>`);
+        const $area = $(`<textarea class="ms-event-edit-area"></textarea>`).val(currentText);
+        $item.append($area).append($actions);
+        $area.focus();
+    });
+    // Memory edit — save
+    $(document).on('click', '#ms-events-list .ms-event-edit-btn.save', async function (e) {
+        e.stopPropagation();
+        const $item   = $(this).closest('.ms-viewer-item');
+        const index   = parseInt($(this).data('index'));
+        const newText = $item.find('.ms-event-edit-area').val().trim();
+        if (!newText) { toastr.warning('Memory text cannot be empty.'); return; }
+        const characterName = resolveCurrentCharName();
+        if (!characterName || !currentWorldTag) { toastr.warning('No character/world active.'); return; }
+        const avatarId = currentPersonaId || resolvePersonaId();
+        const { persistentWorld } = getWorldSettings(currentWorldTag);
+        try {
+            if (persistentWorld) {
+                await updateSharedEvent(currentWorldTag, characterName, index, newText);
+            } else {
+                await updateEvent(avatarId, currentWorldTag, characterName, index, newText);
+            }
+            toastr.success('Memory updated.');
+            await loadEventLog();
+        } catch {
+            toastr.error('Failed to save memory.');
+        }
+    });
+    // Memory edit — cancel
+    $(document).on('click', '#ms-events-list .ms-event-edit-btn.cancel', function (e) {
+        e.stopPropagation();
+        const $item = $(this).closest('.ms-viewer-item');
+        $item.removeClass('editing');
+        $item.find('.ms-event-edit-area, .ms-event-edit-actions').remove();
+        $item.find('.ms-viewer-edit').show();
     });
 
     // Summary viewer
@@ -1970,6 +2105,7 @@ function populateSettingsPanel() {
     $('#ms-summary-words').val(s.summary.targetWords);
     $('#ms-summary-interval').val(summaryInterval);
     $('#ms-summary-interval-display').text(summaryIntervalLabel(summaryInterval));
+    $('#ms-summary-window').val(s.summary.summaryWindowMessages ?? 50);
     $('#ms-summary-prompt').val(s.summary.prompt);
     $('#ms-world-tags-editor').val((s.worldTags || BUILTIN_WORLD_TAGS).join('\n'));
     const threshold = s.consolidation?.autoThreshold ?? 100;
@@ -2547,6 +2683,7 @@ function buildEventRowHtml(ev, fileIndex) {
                     <span class="ms-viewer-text">${escHtmlUtil(ev.event || '(empty)')}</span>
                     ${tags ? `<div class="ms-viewer-tags">${escHtmlUtil(tags)}</div>` : ''}
                 </div>
+                <button class="ms-viewer-edit" data-index="${fileIndex}" title="Edit this memory">✎</button>
                 <button class="ms-viewer-delete" data-index="${fileIndex}" title="Delete this event">✕</button>
             </div>`;
 }

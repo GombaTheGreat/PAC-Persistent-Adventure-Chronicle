@@ -105,6 +105,12 @@ export const appendEvent = (avatarId, worldTag, charName, record) =>
 export const deleteEvent = (avatarId, worldTag, charName, index) =>
     apiFetch(`/personas/${enc(avatarId)}/worlds/${enc(worldTag)}/characters/${enc(charName)}/events/${index}`, { method: 'DELETE' });
 
+export const updateEvent = (avatarId, worldTag, charName, index, eventText) =>
+    apiFetch(`/personas/${enc(avatarId)}/worlds/${enc(worldTag)}/characters/${enc(charName)}/events/${index}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ event: eventText }),
+    });
+
 export const clearEvents = (avatarId, worldTag, charName) =>
     apiFetch(`/personas/${enc(avatarId)}/worlds/${enc(worldTag)}/characters/${enc(charName)}/events`, { method: 'DELETE' });
 
@@ -198,6 +204,12 @@ export const bulkDeleteSharedEvents = (worldTag, charName, indices) =>
 
 export const deleteSharedEvent = (worldTag, charName, index) =>
     apiFetch(`/worlds/${enc(worldTag)}/characters/${enc(charName)}/events/${index}`, { method: 'DELETE' });
+
+export const updateSharedEvent = (worldTag, charName, index, eventText) =>
+    apiFetch(`/worlds/${enc(worldTag)}/characters/${enc(charName)}/events/${index}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ event: eventText }),
+    });
 
 export const clearSharedEvents = (worldTag, charName) =>
     apiFetch(`/worlds/${enc(worldTag)}/characters/${enc(charName)}/events`, { method: 'DELETE' });
