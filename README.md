@@ -155,7 +155,7 @@ After these two steps your memory system is fully primed — PAC will continue b
 ## How It Works
 
 ```
-[Every 5 AI messages]
+[Every 50 AI messages]
   Recent conversation
           ↓
     Your AI model     ← classifies what happened
