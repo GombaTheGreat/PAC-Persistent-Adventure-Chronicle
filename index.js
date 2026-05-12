@@ -1698,8 +1698,7 @@ function bindSettingsEvents() {
         const index  = parseInt($(this).data('index'));
         const newText = $item.find('.ms-summary-edit-area').val().trim();
         if (!newText) { toastr.warning('Summary text cannot be empty.'); return; }
-        const context = getContext();
-        const charName = context.name2;
+        const charName = resolveCurrentCharName();
         if (!charName || !currentWorldTag) { toastr.warning('No character/world active.'); return; }
         const avatarId = currentPersonaId || resolvePersonaId();
         const { persistentWorld: pwUpdate } = getWorldSettings(currentWorldTag);
@@ -1799,6 +1798,54 @@ function bindSettingsEvents() {
             }
             renderWorldFactsList(worldIdentity.worldFacts);
         } catch (err) { toastr.error('Delete failed.'); }
+    });
+
+    // World Facts — inline edit — enter edit mode
+    $(document).on('click', '.ms-worldfact-edit', function (e) {
+        e.stopPropagation();
+        const $row = $(this).closest('.ms-worldfact-row');
+        if ($row.hasClass('editing')) return;
+        const currentText = $row.data('fact');
+        $row.addClass('editing');
+        const $area = $(`<textarea class="ms-event-edit-area"></textarea>`).val(currentText);
+        const $actions = $(`
+            <div class="ms-worldfact-edit-actions">
+                <button class="ms-worldfact-edit-btn save">Save</button>
+                <button class="ms-worldfact-edit-btn cancel">Cancel</button>
+            </div>`);
+        $row.append($area).append($actions);
+        $area.focus();
+    });
+    // World Facts — inline edit — save
+    $(document).on('click', '.ms-worldfact-edit-btn.save', async function (e) {
+        e.stopPropagation();
+        const $row = $(this).closest('.ms-worldfact-row');
+        const index = parseInt($row.data('index'), 10);
+        const newText = $row.find('.ms-event-edit-area').val().trim();
+        if (!newText) { toastr.warning('World fact cannot be empty.'); return; }
+        if (!currentWorldTag) { toastr.warning('No world active.'); return; }
+        try {
+            const { persistentWorld } = getWorldSettings(currentWorldTag);
+            const avatarId = currentPersonaId || resolvePersonaId();
+            const worldIdentity = persistentWorld
+                ? await loadSharedWorldState(currentWorldTag)
+                : await loadIdentity(avatarId, currentWorldTag, null);
+            worldIdentity.worldFacts[index].fact = newText;
+            if (persistentWorld) {
+                await storeSharedWorldState(currentWorldTag, worldIdentity);
+            } else {
+                await storeIdentity(avatarId, currentWorldTag, worldIdentity, null);
+            }
+            toastr.success('World fact updated.');
+            renderWorldFactsList(worldIdentity.worldFacts);
+        } catch { toastr.error('Failed to save world fact.'); }
+    });
+    // World Facts — inline edit — cancel
+    $(document).on('click', '.ms-worldfact-edit-btn.cancel', function (e) {
+        e.stopPropagation();
+        const $row = $(this).closest('.ms-worldfact-row');
+        $row.removeClass('editing');
+        $row.find('.ms-event-edit-area, .ms-worldfact-edit-actions').remove();
     });
 
     // World Facts — clear all
@@ -2346,11 +2393,12 @@ function renderWorldFactsList(facts) {
     facts.forEach((wf, i) => {
         const date = wf.ts ? new Date(wf.ts).toLocaleString() : '';
         $list.append(`
-            <div class="ms-worldfact-row" data-index="${i}">
+            <div class="ms-worldfact-row" data-index="${i}" data-fact="${escHtmlUtil(wf.fact || '')}">
                 <span class="ms-worldfact-text">
                     ${date ? `<span class="ms-viewer-date">${escHtmlUtil(date)} — </span>` : ''}
                     ${escHtmlUtil(wf.fact || '')}
                 </span>
+                <button class="ms-worldfact-edit" data-index="${i}" title="Edit">✎</button>
                 <button class="ms-row-delete ms-worldfact-world-delete" data-index="${i}" title="Delete">✕</button>
             </div>`);
     });
@@ -2883,7 +2931,7 @@ async function loadSummaryList() {
                     <div class="ms-summary-header">
                         <span class="ms-summary-toggle">▶</span>
                         <span class="ms-summary-title">${escHtmlUtil(label)}</span>
-                        <button class="ms-summary-edit ms-viewer-delete" data-index="${fileIndex}" title="Edit this summary" style="font-size:0.8em; padding:1px 6px;">✎</button>
+                        <button class="ms-summary-edit" data-index="${fileIndex}" title="Edit this summary">✎</button>
                         <button class="ms-viewer-delete ms-summary-delete" data-index="${fileIndex}" title="Delete this summary">✕</button>
                     </div>
                     <div class="ms-summary-body">${escHtmlUtil(s.summary || '')}</div>

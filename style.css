@@ -677,6 +677,21 @@ button.menu_button.danger:hover {
     border-color: var(--SmartThemeEmColor, #555);
 }
 
+.ms-row-delete {
+    background: none;
+    border: none;
+    color: var(--SmartThemeEmColor, #888);
+    cursor: pointer;
+    font-size: 0.9em;
+    padding: 0 3px;
+    flex-shrink: 0;
+    opacity: 0.75;
+    line-height: 1.4;
+    transition: color 0.15s, opacity 0.15s;
+}
+
+.ms-row-delete:hover { color: #e74c3c; opacity: 1; }
+
 .ms-identity-table .ms-row-delete {
     background: none;
     border: none;
@@ -744,6 +759,46 @@ button.menu_button.danger:hover {
     flex: 1;
     color: var(--SmartThemeBodyColor, #ccc);
 }
+
+.ms-worldfact-edit {
+    background: none;
+    border: none;
+    color: var(--SmartThemeEmColor, #888);
+    cursor: pointer;
+    font-size: 0.82em;
+    padding: 0 2px;
+    flex-shrink: 0;
+    opacity: 0.5;
+    line-height: 1.4;
+    transition: opacity 0.15s;
+}
+
+.ms-worldfact-edit:hover { opacity: 1; }
+
+.ms-worldfact-row.editing { flex-direction: column; align-items: stretch; }
+
+.ms-worldfact-row.editing .ms-worldfact-text,
+.ms-worldfact-row.editing .ms-worldfact-edit,
+.ms-worldfact-row.editing .ms-worldfact-world-delete { display: none; }
+
+.ms-worldfact-edit-actions { display: flex; gap: 6px; margin-top: 4px; }
+
+.ms-worldfact-edit-btn {
+    font-size: 0.78em;
+    padding: 2px 8px;
+    background: none;
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 3px;
+    cursor: pointer;
+    color: var(--SmartThemeBodyColor, #ccc);
+}
+
+.ms-worldfact-edit-btn:hover {
+    background: var(--SmartThemeBlurTintColor, rgba(255,255,255,0.06));
+}
+
+.ms-worldfact-edit-btn.save { border-color: rgba(46, 204, 113, 0.5); color: #2ecc71; }
+.ms-worldfact-edit-btn.save:hover { background: rgba(46, 204, 113, 0.1); }
 
 /* Custom fields */
 .ms-custom-fields {
@@ -869,10 +924,10 @@ button.menu_button.danger:hover {
     border: none;
     color: #c0392b;
     cursor: pointer;
-    font-size: 0.82em;
-    padding: 0 2px;
+    font-size: 0.9em;
+    padding: 0 3px;
     flex-shrink: 0;
-    opacity: 0.6;
+    opacity: 0.8;
     line-height: 1.4;
     transition: opacity 0.15s;
 }
@@ -886,10 +941,10 @@ button.menu_button.danger:hover {
     border: none;
     color: var(--SmartThemeEmColor, #888);
     cursor: pointer;
-    font-size: 0.82em;
-    padding: 0 2px;
+    font-size: 0.9em;
+    padding: 0 3px;
     flex-shrink: 0;
-    opacity: 0.5;
+    opacity: 0.75;
     line-height: 1.4;
     transition: opacity 0.15s;
 }
@@ -897,6 +952,21 @@ button.menu_button.danger:hover {
 .ms-viewer-edit:hover {
     opacity: 1;
 }
+
+.ms-summary-edit {
+    background: none;
+    border: none;
+    color: var(--SmartThemeBodyColor, #ccc);
+    cursor: pointer;
+    font-size: 0.9em;
+    padding: 0 3px;
+    flex-shrink: 0;
+    opacity: 0.75;
+    line-height: 1.4;
+    transition: opacity 0.15s;
+}
+
+.ms-summary-edit:hover { opacity: 1; }
 
 .ms-viewer-item.editing .ms-viewer-item-body {
     display: none;
