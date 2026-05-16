@@ -399,7 +399,7 @@ export function formatIdentity(identity) {
     if (!standing.length && !worldLines.length) return '';
 
     const parts = [];
-    if (standing.length) parts.push(`[Your Profile]\n${standing.join('\n')}`);
+    if (standing.length) parts.push(`[{{user}}'s Profile]\n${standing.join('\n')}`);
     if (worldLines.length) parts.push(`[World State]\n${worldLines.join('\n')}`);
 
     return parts.join('\n\n');
