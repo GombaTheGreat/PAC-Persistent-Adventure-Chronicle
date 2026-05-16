@@ -3,9 +3,9 @@
  * Fires on GENERATE_BEFORE_COMBINE_PROMPTS.
  *
  * Prompt slots (in injection order):
- *   KEY_IDENTITY      depth 0  [Your Profile] + [World State] — always injected in full
- *   KEY_CHAR_IDENTITY depth 0  [CharName — Character Knowledge] — always injected in full
- *   KEY_SUMMARY       depth 1  Story So Far — injected if budget allows
+ *   KEY_IDENTITY      depth 5  [Your Profile] + [World State] — always injected in full
+ *   KEY_CHAR_IDENTITY depth 4  [CharName — Character Knowledge] — always injected in full
+ *   KEY_SUMMARY       depth 3  Story So Far — injected if budget allows
  *   KEY_EVENTS        depth 2  Memories — fills whatever budget remains (RAG-retrieved)
  *
  * The return value exposes 5 named sub-components for UI display purposes:
@@ -27,8 +27,9 @@ const KEY_CHAR_IDENTITY = 'pac_char_identity';
 const KEY_SUMMARY       = 'pac_summary';
 const KEY_EVENTS        = 'pac_events';
 
-const IN_PROMPT = extension_prompt_types.IN_PROMPT;
-const SYSTEM    = extension_prompt_roles.SYSTEM;
+const IN_PROMPT  = extension_prompt_types.IN_PROMPT;
+const SYSTEM     = extension_prompt_roles.SYSTEM;
+const ASSISTANT  = extension_prompt_roles.ASSISTANT;
 
 /** Rough token estimator — accurate enough for budget purposes (1 token ≈ 4 chars). */
 const est = (text) => Math.ceil(text.length / 4);
@@ -123,7 +124,7 @@ export async function buildAndInjectContext(context, avatarId, worldTag, persist
 
                 const combined = [personaText, worldText].filter(Boolean).join('\n\n');
                 if (combined) {
-                    setExtensionPrompt(KEY_IDENTITY, combined, IN_PROMPT, 0, false, SYSTEM);
+                    setExtensionPrompt(KEY_IDENTITY, combined, IN_PROMPT, 5, false, SYSTEM);
                     layer1Text   = combined;
                     layer1Tokens = est(combined);
                     used += layer1Tokens;
@@ -137,7 +138,7 @@ export async function buildAndInjectContext(context, avatarId, worldTag, persist
                 const sharedChar    = await loadSharedCharKnowledge(worldTag, characterName);
                 const charIdentText = formatCharacterIdentity(sharedChar, characterName);
                 if (charIdentText) {
-                    setExtensionPrompt(KEY_CHAR_IDENTITY, charIdentText, IN_PROMPT, 0, false, SYSTEM);
+                    setExtensionPrompt(KEY_CHAR_IDENTITY, charIdentText, IN_PROMPT, 4, false, SYSTEM);
                     layer1Tokens += est(charIdentText);
                     used += est(charIdentText);
                     layer1Text = layer1Text ? `${layer1Text}\n\n${charIdentText}` : charIdentText;
@@ -160,7 +161,7 @@ export async function buildAndInjectContext(context, avatarId, worldTag, persist
                 worldStateTokens = est(wfText || '');
 
                 if (personaText) {
-                    setExtensionPrompt(KEY_IDENTITY, personaText, IN_PROMPT, 0, false, SYSTEM);
+                    setExtensionPrompt(KEY_IDENTITY, personaText, IN_PROMPT, 5, false, SYSTEM);
                     layer1Text   = personaText;
                     layer1Tokens = est(personaText);
                     used += layer1Tokens;
@@ -170,7 +171,7 @@ export async function buildAndInjectContext(context, avatarId, worldTag, persist
                 const charIdentity  = await loadIdentity(avatarId, worldTag, characterName);
                 const charIdentText = formatCharacterIdentity(charIdentity, characterName);
                 if (charIdentText) {
-                    setExtensionPrompt(KEY_CHAR_IDENTITY, charIdentText, IN_PROMPT, 0, false, SYSTEM);
+                    setExtensionPrompt(KEY_CHAR_IDENTITY, charIdentText, IN_PROMPT, 4, false, SYSTEM);
                     layer1Tokens += est(charIdentText);
                     used += est(charIdentText);
                     layer1Text = layer1Text ? `${layer1Text}\n\n${charIdentText}` : charIdentText;
@@ -198,7 +199,7 @@ export async function buildAndInjectContext(context, avatarId, worldTag, persist
             const text = formatSummaries(summaries, 1);
             const summaryBudget = Math.max(minSumm, budget - used - minEvts);
             if (text && est(text) <= summaryBudget) {
-                setExtensionPrompt(KEY_SUMMARY, text, IN_PROMPT, 1, false, SYSTEM);
+                setExtensionPrompt(KEY_SUMMARY, text, IN_PROMPT, 3, false, SYSTEM);
                 layer2Text   = text;
                 layer2Tokens = est(text);
                 used += layer2Tokens;
@@ -249,7 +250,7 @@ export async function buildAndInjectContext(context, avatarId, worldTag, persist
                 }
 
                 if (eventText) {
-                    setExtensionPrompt(KEY_EVENTS, eventText, IN_PROMPT, 2, false, SYSTEM);
+                    setExtensionPrompt(KEY_EVENTS, eventText, IN_PROMPT, 2, false, ASSISTANT);
                     layer3Text   = eventText;
                     layer3Tokens = est(eventText);
                 }
