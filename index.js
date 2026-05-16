@@ -15,7 +15,7 @@ import { extension_settings, renderExtensionTemplateAsync } from '../../../exten
 import { getContext } from '../../../st-context.js';
 import { user_avatar } from '../../../personas.js';
 
-import { loadIdentity, storeIdentity, invalidateIdentityCache, applyIdentityExtraction, emptyIdentity,
+import { loadIdentity, storeIdentity, invalidateIdentityCache, invalidateCharacterCacheEntry, applyIdentityExtraction, emptyIdentity,
     loadSharedWorldState, storeSharedWorldState, applySharedWorldFacts,
     loadSharedCharKnowledge, storeSharedCharKnowledge, invalidateSharedCache } from './src/identity-store.js';
 import { logEvent, logSharedEvent } from './src/event-log.js';
@@ -107,8 +107,8 @@ const DEFAULT_SETTINGS = {
 // ---------------------------------------------------------------------------
 
 let pluginOnline = false;            // set true after successful health check
-let messagesSinceLastExtraction = 0;
-let messagesSinceSummary = 0;
+let lastExtractionAtChatLength = 0;  // chat.length at time of last extraction; counts all messages
+let lastSummaryAtChatLength = 0;     // chat.length at time of last summary; counts all messages
 let currentCharacterName = null;
 let currentPersonaId = null;
 let currentWorldTag = null;          // null = no world matched = extension inactive
@@ -381,23 +381,28 @@ async function onChatChanged() {
     const newPersonaId = resolvePersonaId();
     const newCharName  = resolveCurrentCharName();
 
+    // Reset interval counters to the current chat length so the clock starts fresh
+    // from the moment we enter this chat, not from the beginning of its history.
+    const chatLen = context.chat?.length || 0;
+
     if (newPersonaId !== currentPersonaId) {
         invalidateAllCaches(currentPersonaId);
         currentPersonaId = newPersonaId;
-        messagesSinceLastExtraction = 0;
-        messagesSinceSummary = 0;
+        lastExtractionAtChatLength = chatLen;
+        lastSummaryAtChatLength    = chatLen;
     }
 
     if (newCharName !== currentCharacterName) {
-        currentCharacterName = newCharName;
-        messagesSinceLastExtraction = 0;
-        messagesSinceSummary = 0;
+        currentCharacterName       = newCharName;
+        lastExtractionAtChatLength = chatLen;
+        lastSummaryAtChatLength    = chatLen;
     }
 
     currentWorldTag = detectWorldTag();
     clearInjections();
     updateMemoryStatus().catch(() => {});
     updateHealthChecks();
+    updateAutoCounters();
 
     // Reload injection for the new character/chat
     if (currentWorldTag) {
@@ -414,11 +419,12 @@ async function onChatLoaded() {
     currentPersonaId    = resolvePersonaId();
     currentCharacterName = resolveCurrentCharName();
     currentWorldTag     = detectWorldTag();
-    messagesSinceLastExtraction = 0;
-    messagesSinceSummary = 0;
+    lastExtractionAtChatLength = context.chat?.length || 0;
+    lastSummaryAtChatLength    = context.chat?.length || 0;
     clearInjections();
     updateMemoryStatus().catch(() => {});
     updateHealthChecks();
+    updateAutoCounters();
 
     // Pre-load injection so the first generation in this session has memory.
     // generate_before_combine_prompts doesn't fire in all ST builds, so
@@ -437,8 +443,9 @@ async function onSettingsUpdated() {
     if (newPersonaId !== currentPersonaId) {
         invalidateAllCaches(currentPersonaId);
         currentPersonaId = newPersonaId;
-        messagesSinceLastExtraction = 0;
-        messagesSinceSummary = 0;
+        const _chatLen = getContext().chat?.length || 0;
+        lastExtractionAtChatLength = _chatLen;
+        lastSummaryAtChatLength    = _chatLen;
         clearInjections();
         updatePersonaIndicator();
         updateMemoryStatus().catch(() => {});
@@ -453,32 +460,71 @@ async function onMessageReceived() {
     if (!currentWorldTag) currentWorldTag = detectWorldTag();
     if (!currentWorldTag) return;
 
+    // Use total chat length (user + AI messages) so the interval fires at the same
+    // rate regardless of how many characters respond per round in a group chat.
+    const context = getContext();
+    const chatLen = context.chat?.length || 0;
+
     if (settings.extraction.enabled) {
-        messagesSinceLastExtraction++;
-        if (messagesSinceLastExtraction >= settings.extraction.intervalMessages) {
-            messagesSinceLastExtraction = 0;
-            await triggerExtraction();
+        if (chatLen - lastExtractionAtChatLength >= settings.extraction.intervalMessages) {
+            lastExtractionAtChatLength = chatLen;
+            await triggerExtractionForChat();
         }
     }
 
     const summaryInterval = settings.summary.autoIntervalMessages || 0;
     if (summaryInterval > 0) {
-        messagesSinceSummary++;
-        if (messagesSinceSummary >= summaryInterval) {
-            messagesSinceSummary = 0;
-            await generateSummaryForCurrentChar({ silent: true });
+        if (chatLen - lastSummaryAtChatLength >= summaryInterval) {
+            lastSummaryAtChatLength = chatLen;
+            await generateSummaryForChat({ silent: true });
         }
     }
 
-    // generate_before_combine_prompts doesn't fire in all ST builds.
-    // setExtensionPrompt data persists, so registering here makes it
-    // available for the next generation.
-    const context = getContext();
+    // Always update counters so the Preview tab stays current.
+    updateAutoCounters();
+
+    // In group chats, onGroupMemberDrafted handles injection for the correct
+    // character — ST awaits that handler so injection is guaranteed complete
+    // before Generate() runs. Pre-injecting here would race against the next
+    // character's onGroupMemberDrafted call: both async buildAndInjectContext
+    // calls write to the same slots, and whichever server round-trip finishes
+    // last wins — producing intermittent wrong-character injection.
+    if (context.groupId) return;
+
+    // Solo chat fallback: generate_before_combine_prompts doesn't fire in all
+    // ST builds. setExtensionPrompt slots persist, so pre-loading here ensures
+    // data is available for the next generation in those builds.
     const avatarId = resolvePersonaId();
     const { persistentWorld } = getWorldSettings(currentWorldTag);
     const charName = context.name2 || currentCharacterName;
     lastInjectionBreakdown = await buildAndInjectContext(
         context, avatarId, currentWorldTag, persistentWorld, charName
+    ) || null;
+    updateBudgetDisplay();
+    renderInjectionPreview(lastInjectionBreakdown);
+}
+
+async function onGroupMemberDrafted(chId) {
+    // Fires after ST selects the next group member but before Generate() is called.
+    // ST AWAITS this handler — injection done here is guaranteed to complete and
+    // persist into the prompt regardless of whether GENERATE_BEFORE_COMBINE_PROMPTS
+    // fires in the current ST build.
+    const context = getContext();
+    const char = context.characters?.[chId];
+    if (!char?.name) return;
+    const tag = detectWorldTagForCharName(char.name);
+    if (!tag) return;
+    const avatarId = resolvePersonaId();
+    const { persistentWorld } = getWorldSettings(tag);
+
+    // Update module state so onBeforeGenerate and onMessageReceived see the right character.
+    currentWorldTag      = tag;
+    currentCharacterName = char.name;
+
+    // Full injection with the correct character. This is the definitive injection
+    // point for group chats — ST awaits this before calling Generate().
+    lastInjectionBreakdown = await buildAndInjectContext(
+        context, avatarId, tag, persistentWorld, char.name
     ) || null;
     updateBudgetDisplay();
     renderInjectionPreview(lastInjectionBreakdown);
@@ -506,24 +552,60 @@ async function onBeforeGenerate() {
         return;
     }
 
+    // Group chats: onGroupMemberDrafted already ran buildAndInjectContext with the
+    // correct character and ST awaited it — slots are already set. Calling it again
+    // here would double-fetch Layers 2 & 3 (no cache) for no benefit. Update the
+    // status line and return.
+    if (context.groupId) {
+        updateMemoryStatus().catch(() => {});
+        return;
+    }
+
+    // Solo chats: GENERATE_BEFORE_COMBINE_PROMPTS is our primary injection hook.
     const avatarId = resolvePersonaId();
     const { persistentWorld } = getWorldSettings(currentWorldTag);
     const charNameForInjection = context.name2 || currentCharacterName;
     lastInjectionBreakdown = await buildAndInjectContext(context, avatarId, currentWorldTag, persistentWorld, charNameForInjection) || null;
     updateBudgetDisplay();
     renderInjectionPreview(lastInjectionBreakdown);
-
-    // In group chats, refresh the status line so it shows the responding character
-    if (context.groupId) {
-        updateMemoryStatus().catch(() => {});
-    }
 }
 
 // ---------------------------------------------------------------------------
 // Extraction flow
 // ---------------------------------------------------------------------------
 
-async function triggerExtraction({ fullHistory = false } = {}) {
+/**
+ * All tagged, non-narrator members of the current group.
+ * Used to distribute scene-level extractions and summaries to every participant.
+ * @param {object} context  result of getContext()
+ * @returns {string[]}  character names
+ */
+function getGroupTargetChars(context) {
+    const group = (context.groups || []).find(g => g.id === context.groupId);
+    if (!group) return [];
+    return (group.members || [])
+        .map(av => (context.characters || []).find(c => c.avatar === av)?.name)
+        .filter(name => name && !isNarratorChar(name) && detectWorldTagForCharName(name));
+}
+
+/**
+ * Dispatch extraction for the current chat context.
+ * Solo: one LLM call for the single character.
+ * Group: one LLM call covering all tagged non-narrator members — single dialog, correct per-character saves.
+ * @param {{ fullHistory?: boolean }} options
+ */
+async function triggerExtractionForChat({ fullHistory = false } = {}) {
+    const context = getContext();
+    if (!context.groupId) {
+        await triggerExtraction({ fullHistory });
+        return;
+    }
+    const groupChars = getGroupTargetChars(context);
+    if (!groupChars.length) return;
+    await triggerExtraction({ fullHistory, groupCharNames: groupChars });
+}
+
+async function triggerExtraction({ fullHistory = false, groupCharNames = null } = {}) {
     if (isExtracting || !currentWorldTag) return;
     isExtracting = true;
 
@@ -541,18 +623,22 @@ async function triggerExtraction({ fullHistory = false } = {}) {
         const characterName = resolveCurrentCharName();
         if (!characterName) return;
 
-        // Resolved once — used for both attribution (below) and post-extraction routing (further down).
-        const narratorMode = isNarratorChar(characterName);
+        // In group mode narrators are already excluded from groupCharNames — treat as non-narrator.
+        // In solo mode, check normally so narrator cross-attribution still works.
+        const narratorMode = groupCharNames?.length ? false : isNarratorChar(characterName);
 
         const settings = getSettings();
         const lastN = fullHistory ? 9999 : settings.extraction.intervalMessages;
         const recentMessages = (context.chat || []).slice(-lastN);
 
-        // Pass speaker attribution so the extraction LLM knows which name is the AI character
-        // vs the user persona. Skip in narrator mode — characterName is the narrator card, not a scene participant.
+        // Pass speaker attribution so the extraction LLM knows which names are AI characters vs the user persona.
+        // Group mode: characterNames array → LLM produces per-character "characters" map.
+        // Solo mode / narrator: single characterName or empty attribution.
         const attribution = narratorMode
             ? {}
-            : { characterName, personaName: context.name1 || '' };
+            : groupCharNames?.length
+                ? { characterNames: groupCharNames, personaName: context.name1 || '' }
+                : { characterName, personaName: context.name1 || '' };
 
         const extraction = await runExtraction(
             recentMessages,
@@ -562,10 +648,14 @@ async function triggerExtraction({ fullHistory = false } = {}) {
         );
         if (!extraction || !hasContent(extraction)) return;
 
-        // Narrator cross-attribution: narrator chars distribute events to scene participants.
-        // Regular chars attribute to themselves as before.
+        // targetChars determines who receives the extracted events.
+        // Group mode: all tagged non-narrator members (passed in as groupCharNames).
+        // Narrator solo: scene participants detected from recent history.
+        // Regular solo: just the responding character.
         let targetChars;
-        if (narratorMode) {
+        if (groupCharNames?.length) {
+            targetChars = groupCharNames;
+        } else if (narratorMode) {
             // Use a wider window for participant detection than the LLM extraction window
             // so group members who haven't spoken recently are still attributed events.
             // Fixed 3× multiplier — avoids relying on context.characters.length, which is the
@@ -577,19 +667,24 @@ async function triggerExtraction({ fullHistory = false } = {}) {
         }
 
         if (targetChars.length === 0) {
-            // Narrator with no non-narrator participants in the window — nothing to attribute
-            console.debug('[PAC] Narrator extraction: no scene participants found, skipping.');
+            console.debug('[PAC] Extraction: no target characters found, skipping.');
             return;
         }
 
-        // Dialog title shows "Scene → Alynn, Mira" for narrators so user knows who gets the memory
-        const dialogLabel = narratorMode ? `Scene → ${targetChars.join(', ')}` : characterName;
+        // Dialog label:
+        //   Group mode   → "Group: CharA, CharB, CharC"
+        //   Narrator solo → "Scene → CharA, CharB"
+        //   Regular solo  → character name
+        const dialogLabel = groupCharNames?.length
+            ? `Group: ${groupCharNames.join(', ')}`
+            : narratorMode
+                ? `Scene → ${targetChars.join(', ')}`
+                : characterName;
 
-        // In narrator mode, characterFacts can't be attributed unambiguously across multiple scene
-        // participants — strip them before the approval dialog so users never approve items that
-        // the save step would silently discard.
+        // In narrator mode, characterFacts/characters can't be attributed unambiguously —
+        // strip them before the approval dialog so users never approve items that would be discarded.
         const extractionForSave = narratorMode
-            ? { ...extraction, characterFacts: {} }
+            ? { ...extraction, characterFacts: {}, characters: {} }
             : extraction;
 
         // If narrator stripping leaves nothing actionable, bail out silently
@@ -622,9 +717,24 @@ async function triggerExtraction({ fullHistory = false } = {}) {
             }
         }
 
-        // Character Knowledge — shared pool when ON, persona-scoped when OFF.
-        // Skipped in narrator mode: attribution across multiple scene participants is ambiguous.
-        if (!narratorMode && Object.keys(approved.characterFacts || {}).length) {
+        // Character Knowledge — save per-character facts.
+        // Group mode: iterate approved.characters map (each entry goes to its named character).
+        // Solo mode: use legacy approved.characterFacts (single character, skipped for narrator).
+        if (approved.characters && Object.keys(approved.characters).length) {
+            for (const [charName, charFacts] of Object.entries(approved.characters)) {
+                if (!charFacts || !Object.keys(charFacts).length) continue;
+                if (persistentWorld) {
+                    const charIdentity = await loadSharedCharKnowledge(worldTag, charName);
+                    applyIdentityExtraction(charIdentity, charFacts, [], context.chatId);
+                    await storeSharedCharKnowledge(worldTag, charName, charIdentity);
+                } else {
+                    const charIdentity = await loadIdentity(avatarId, worldTag, charName);
+                    applyIdentityExtraction(charIdentity, charFacts, [], context.chatId);
+                    await storeIdentity(avatarId, worldTag, charIdentity, charName);
+                }
+            }
+        } else if (!narratorMode && Object.keys(approved.characterFacts || {}).length) {
+            // Legacy solo path
             if (persistentWorld) {
                 const charIdentity = await loadSharedCharKnowledge(worldTag, characterName);
                 applyIdentityExtraction(charIdentity, approved.characterFacts, [], context.chatId);
@@ -885,8 +995,32 @@ async function triggerConsolidation() {
 // Summary generation
 // ---------------------------------------------------------------------------
 
-async function generateSummaryForCurrentChar({ silent = false } = {}) {
-    if (!currentWorldTag) {
+/**
+ * In group chats: generate a session summary for every tagged non-narrator member.
+ * In solo chats: delegates directly to generateSummaryForCurrentChar.
+ */
+async function generateSummaryForChat({ silent = false } = {}) {
+    const context = getContext();
+    if (!context.groupId) {
+        await generateSummaryForCurrentChar({ silent });
+        return;
+    }
+    const groupChars = getGroupTargetChars(context);
+    if (!groupChars.length) return;
+    if (!silent) toastr.info(`Generating summaries for ${groupChars.length} character${groupChars.length !== 1 ? 's' : ''}…`);
+    for (const charName of groupChars) {
+        // Always silent inside the loop — bypasses the 60s cooldown that would block
+        // every character after the first, since the cooldown is per-session not per-character.
+        await generateSummaryForCurrentChar({ silent: true, charName });
+    }
+    if (!silent) toastr.success(`Summaries saved for: ${groupChars.join(', ')}.`);
+}
+
+async function generateSummaryForCurrentChar({ silent = false, charName = null } = {}) {
+    // Resolve worldTag early so the guard works correctly when charName is provided —
+    // the character may have a valid tag even if currentWorldTag is null.
+    const worldTag = charName ? (detectWorldTagForCharName(charName) || currentWorldTag) : currentWorldTag;
+    if (!worldTag) {
         if (!silent) toastr.warning('No world tag detected for this character.');
         return;
     }
@@ -895,7 +1029,8 @@ async function generateSummaryForCurrentChar({ silent = false } = {}) {
         return;
     }
     // Guard against duplicate summaries when the user clicks rapidly or auto-summary fires
-    // concurrently with a manual trigger. 60-second cooldown.
+    // concurrently with a manual trigger. 60-second cooldown (skipped when silent=true,
+    // which is how generateSummaryForChat calls this for each group member).
     const cooldownMs = 60_000;
     if (!silent && Date.now() - lastSummaryGeneratedAt < cooldownMs) {
         toastr.info('A summary was just generated — please wait a moment before generating another.');
@@ -903,7 +1038,7 @@ async function generateSummaryForCurrentChar({ silent = false } = {}) {
     }
 
     const context = getContext();
-    const characterName = resolveCurrentCharName();
+    const characterName = charName || resolveCurrentCharName();
     if (!characterName) {
         if (!silent) toastr.warning('No character selected.');
         return;
@@ -911,7 +1046,6 @@ async function generateSummaryForCurrentChar({ silent = false } = {}) {
 
     // Capture state before any await — character may change during LLM call
     const avatarId  = currentPersonaId || resolvePersonaId();
-    const worldTag  = currentWorldTag;
 
     // Narrators don't accumulate their own session summaries
     if (isNarratorChar(characterName)) {
@@ -1053,6 +1187,36 @@ function updatePersonaIndicator() {
 function checkLayerMinWarning(budget, minS, minE) {
     const exceeded = (minS + minE) > budget;
     $('#ms-min-budget-warning').toggleClass('hidden', !exceeded);
+}
+
+function updateAutoCounters() {
+    const settings  = getSettings();
+    const context   = getContext();
+    const chatLen   = context.chat?.length || 0;
+
+    // Extraction counter
+    const exInterval = settings.extraction?.intervalMessages || 0;
+    if (settings.extraction?.enabled && exInterval > 0) {
+        const count = Math.min(chatLen - lastExtractionAtChatLength, exInterval);
+        const pct   = (count / exInterval * 100).toFixed(1) + '%';
+        $('#ms-counter-extraction').text(`${count} / ${exInterval}`);
+        $('#ms-counter-bar-extraction').css('width', pct);
+    } else {
+        $('#ms-counter-extraction').text('Off');
+        $('#ms-counter-bar-extraction').css('width', '0%');
+    }
+
+    // Summary counter
+    const sumInterval = settings.summary?.autoIntervalMessages || 0;
+    if (sumInterval > 0) {
+        const count = Math.min(chatLen - lastSummaryAtChatLength, sumInterval);
+        const pct   = (count / sumInterval * 100).toFixed(1) + '%';
+        $('#ms-counter-summary').text(`${count} / ${sumInterval}`);
+        $('#ms-counter-bar-summary').css('width', pct);
+    } else {
+        $('#ms-counter-summary').text('Off');
+        $('#ms-counter-bar-summary').css('width', '0%');
+    }
 }
 
 function updateBudgetDisplay() {
@@ -1536,12 +1700,12 @@ function bindSettingsEvents() {
         toastr.success('Extraction prompt reset to default.');
     });
     $(document).on('click', '#ms-btn-trigger-extraction', () => {
-        messagesSinceLastExtraction = 0;
-        triggerExtraction();
+        lastExtractionAtChatLength = getContext().chat?.length || 0;
+        triggerExtractionForChat();
     });
     $(document).on('click', '#ms-btn-full-extraction', () => {
-        messagesSinceLastExtraction = 0;
-        triggerExtraction({ fullHistory: true });
+        lastExtractionAtChatLength = getContext().chat?.length || 0;
+        triggerExtractionForChat({ fullHistory: true });
     });
 
     // Summary settings
@@ -1552,7 +1716,7 @@ function bindSettingsEvents() {
     $(document).on('input', '#ms-summary-interval', function () {
         const val = parseInt($(this).val()) || 0;
         getSettings().summary.autoIntervalMessages = val;
-        messagesSinceSummary = 0;
+        lastSummaryAtChatLength = getContext().chat?.length || 0;
         $('#ms-summary-interval-display').text(summaryIntervalLabel(val));
         saveSettingsDebounced();
     });
@@ -1572,7 +1736,16 @@ function bindSettingsEvents() {
         saveSettingsDebounced();
         toastr.success('Summary prompt reset to default.');
     });
-    $(document).on('click', '#ms-btn-generate-summary', () => generateSummaryForCurrentChar());
+    $(document).on('click', '#ms-btn-generate-summary', () => {
+        // In group chats, generate for all tagged non-narrator members so every
+        // character that might respond next has an up-to-date summary to inject.
+        const ctx = getContext();
+        if (ctx.groupId) {
+            generateSummaryForChat();
+        } else {
+            generateSummaryForCurrentChar();
+        }
+    });
 
     // Overview tab
     $(document).on('click', '#ms-btn-refresh-overview', () => loadAuditView());
@@ -2999,6 +3172,7 @@ async function init() {
     eventSource.on(event_types.CHAT_LOADED,  onChatLoaded);
     eventSource.on(event_types.CHAT_CHANGED, onChatChanged);
     eventSource.on(event_types.MESSAGE_RECEIVED, onMessageReceived);
+    eventSource.on(event_types.GROUP_MEMBER_DRAFTED, onGroupMemberDrafted);
     eventSource.on(event_types.GENERATE_BEFORE_COMBINE_PROMPTS, onBeforeGenerate);
     eventSource.on(event_types.SETTINGS_UPDATED, onSettingsUpdated);
 

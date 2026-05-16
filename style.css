@@ -238,6 +238,55 @@
     cursor: pointer;
 }
 
+/* ── Auto-trigger counters (Preview tab) ────────────────────── */
+
+.ms-counter-block {
+    margin: 6px 0 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.ms-counter-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ms-counter-label {
+    font-size: 0.78em;
+    color: var(--SmartThemeEmColor, #777);
+    width: 68px;
+    flex-shrink: 0;
+}
+
+.ms-counter-track {
+    flex: 1;
+    height: 6px;
+    background: var(--SmartThemeShadowColor, rgba(0,0,0,0.2));
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.ms-counter-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.ms-counter-fill-extract { background: #c8941f; }
+.ms-counter-fill-summary { background: #3a8a5a; }
+
+.ms-counter-value {
+    font-size: 0.78em;
+    color: var(--SmartThemeBodyColor, #ccc);
+    width: 54px;
+    text-align: right;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+}
+
 /* ── Live token breakdown (inside budget card) ─────────────── */
 
 .ms-budget-breakdown {

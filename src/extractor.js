@@ -58,9 +58,24 @@ export async function runExtraction(messages, systemPrompt = DEFAULT_EXTRACTION_
         effectivePrompt += `\n\nCUSTOM FIELDS TO TRACK (under personaFacts.custom — plain text values):\n${fieldList}`;
     }
 
-    // Ground the LLM on which transcript speaker is the AI character vs the user persona.
-    // Without this, the LLM must guess from context — unreliable when persona names look like character names.
-    if (attribution.characterName || attribution.personaName) {
+    // Ground the LLM on which transcript speakers are AI characters vs the user persona.
+    // Group mode (characterNames array): instruct the LLM to produce a per-character "characters" map.
+    // Solo mode (characterName string): use the existing flat "characterFacts" bucket.
+    if (attribution.characterNames?.length) {
+        // Group mode — one extraction call covers all AI characters
+        const charList = attribution.characterNames.map(n => `  - "${n}"`).join('\n');
+        const lines = ['\n\nSCENE ATTRIBUTION — use these to classify correctly:'];
+        if (attribution.personaName) {
+            lines.push(`• "${attribution.personaName}" is the USER PERSONA → their facts go under personaFacts`);
+        }
+        lines.push(`• AI CHARACTERS in this scene — extract facts for EACH separately under a "characters" object keyed by their exact name:`);
+        lines.push(charList);
+        lines.push(`• "events" captures moments visible to all (every character receives them)`);
+        lines.push(`• Do NOT use "characterFacts" — use the "characters" object instead`);
+        lines.push(`• "characters" schema per entry: { "titles": [...], "factions": [...], "reputation": {...}, "relationships": [...] }`);
+        effectivePrompt += lines.join('\n');
+    } else if (attribution.characterName || attribution.personaName) {
+        // Solo mode — single AI character
         const lines = ['\n\nSCENE ATTRIBUTION — use these to classify correctly:'];
         if (attribution.characterName) {
             lines.push(`• "${attribution.characterName}" is the AI CHARACTER → their facts go under characterFacts`);
@@ -129,15 +144,24 @@ export function hasContent(extraction) {
         (pf.reputation && Object.keys(pf.reputation).length > 0) ||
         (pf.custom && Object.keys(pf.custom).length > 0)
     );
+    // Solo mode: flat characterFacts object
     const cf = extraction.characterFacts || {};
-    const hasCharFacts = (
+    const hasLegacyCharFacts = (
         (cf.titles?.length > 0) ||
         (cf.factions?.length > 0) ||
         (cf.relationships?.length > 0) ||
         (cf.reputation && Object.keys(cf.reputation).length > 0)
     );
+    // Group mode: per-character map under "characters"
+    const hasGroupCharFacts = Object.values(extraction.characters || {}).some(c =>
+        (c.titles?.length > 0) ||
+        (c.factions?.length > 0) ||
+        (c.relationships?.length > 0) ||
+        (c.reputation && Object.keys(c.reputation).length > 0)
+    );
     return hasPersonaFacts ||
-        hasCharFacts ||
+        hasLegacyCharFacts ||
+        hasGroupCharFacts ||
         (extraction.worldFacts?.length > 0) ||
         (extraction.events?.length > 0);
 }
@@ -215,50 +239,96 @@ export async function showApprovalDialog(extraction, characterName) {
         }
 
         // --- Character Facts ---
-        const cfRows = [];
+        // Group mode: render one collapsible section per character from the "characters" map.
+        // Solo mode: render single "characterFacts" section (legacy flat object).
+        const groupCharsMap = extraction.characters || {};
+        const isGroupMode = Object.keys(groupCharsMap).length > 0;
 
-        if (cf.titles?.length) {
-            cf.titles.forEach((t, i) => {
-                cfRows.push(`<label class="ms-approval-item">
-                    <input type="checkbox" checked data-section="cf-titles" data-index="${i}">
-                    <span class="ms-badge ms-badge-${t.action === 'add' ? 'green' : 'red'}">${t.action}</span>
-                    title: ${escHtml(t.title)}
-                </label>`);
-            });
-        }
-
-        if (cf.factions?.length) {
-            cf.factions.forEach((f, i) => {
-                cfRows.push(`<label class="ms-approval-item">
-                    <input type="checkbox" checked data-section="cf-factions" data-index="${i}">
-                    <span class="ms-badge ms-badge-purple">faction</span>
-                    ${escHtml(f.name)}: ${escHtml(f.stance || 'neutral')}
-                </label>`);
-            });
-        }
-
-        if (cf.reputation && Object.keys(cf.reputation).length) {
-            Object.entries(cf.reputation).forEach(([place, desc]) => {
-                cfRows.push(`<label class="ms-approval-item">
-                    <input type="checkbox" checked data-section="cf-reputation" data-key="${escHtml(place)}">
-                    <span class="ms-badge ms-badge-purple">rep</span>
-                    ${escHtml(desc)} in ${escHtml(place)}
-                </label>`);
-            });
-        }
-
-        if (cf.relationships?.length) {
-            cf.relationships.forEach((r, i) => {
-                cfRows.push(`<label class="ms-approval-item">
-                    <input type="checkbox" checked data-section="cf-relationships" data-index="${i}">
-                    <span class="ms-badge ms-badge-purple">relation</span>
-                    ${escHtml(r.name)}: ${escHtml(r.type || '')}
-                </label>`);
-            });
-        }
-
-        if (cfRows.length) {
-            sections.push(`<div class="ms-section"><h4>Character Knowledge — ${escHtml(characterName)}</h4>${cfRows.join('')}</div>`);
+        if (isGroupMode) {
+            for (const [charName, cf] of Object.entries(groupCharsMap)) {
+                const cfRows = [];
+                if (cf.titles?.length) {
+                    cf.titles.forEach((t, i) => {
+                        cfRows.push(`<label class="ms-approval-item">
+                            <input type="checkbox" checked data-section="char-titles" data-char="${escHtml(charName)}" data-index="${i}">
+                            <span class="ms-badge ms-badge-${t.action === 'add' ? 'green' : 'red'}">${t.action}</span>
+                            title: ${escHtml(t.title)}
+                        </label>`);
+                    });
+                }
+                if (cf.factions?.length) {
+                    cf.factions.forEach((f, i) => {
+                        cfRows.push(`<label class="ms-approval-item">
+                            <input type="checkbox" checked data-section="char-factions" data-char="${escHtml(charName)}" data-index="${i}">
+                            <span class="ms-badge ms-badge-purple">faction</span>
+                            ${escHtml(f.name)}: ${escHtml(f.stance || 'neutral')}
+                        </label>`);
+                    });
+                }
+                if (cf.reputation && Object.keys(cf.reputation).length) {
+                    Object.entries(cf.reputation).forEach(([place, desc]) => {
+                        cfRows.push(`<label class="ms-approval-item">
+                            <input type="checkbox" checked data-section="char-reputation" data-char="${escHtml(charName)}" data-key="${escHtml(place)}">
+                            <span class="ms-badge ms-badge-purple">rep</span>
+                            ${escHtml(desc)} in ${escHtml(place)}
+                        </label>`);
+                    });
+                }
+                if (cf.relationships?.length) {
+                    cf.relationships.forEach((r, i) => {
+                        cfRows.push(`<label class="ms-approval-item">
+                            <input type="checkbox" checked data-section="char-relationships" data-char="${escHtml(charName)}" data-index="${i}">
+                            <span class="ms-badge ms-badge-purple">relation</span>
+                            ${escHtml(r.name)}: ${escHtml(r.type || '')}
+                        </label>`);
+                    });
+                }
+                if (cfRows.length) {
+                    sections.push(`<div class="ms-section"><h4>Character Knowledge — ${escHtml(charName)}</h4>${cfRows.join('')}</div>`);
+                }
+            }
+        } else {
+            // Solo / legacy flat characterFacts
+            const cfRows = [];
+            if (cf.titles?.length) {
+                cf.titles.forEach((t, i) => {
+                    cfRows.push(`<label class="ms-approval-item">
+                        <input type="checkbox" checked data-section="cf-titles" data-index="${i}">
+                        <span class="ms-badge ms-badge-${t.action === 'add' ? 'green' : 'red'}">${t.action}</span>
+                        title: ${escHtml(t.title)}
+                    </label>`);
+                });
+            }
+            if (cf.factions?.length) {
+                cf.factions.forEach((f, i) => {
+                    cfRows.push(`<label class="ms-approval-item">
+                        <input type="checkbox" checked data-section="cf-factions" data-index="${i}">
+                        <span class="ms-badge ms-badge-purple">faction</span>
+                        ${escHtml(f.name)}: ${escHtml(f.stance || 'neutral')}
+                    </label>`);
+                });
+            }
+            if (cf.reputation && Object.keys(cf.reputation).length) {
+                Object.entries(cf.reputation).forEach(([place, desc]) => {
+                    cfRows.push(`<label class="ms-approval-item">
+                        <input type="checkbox" checked data-section="cf-reputation" data-key="${escHtml(place)}">
+                        <span class="ms-badge ms-badge-purple">rep</span>
+                        ${escHtml(desc)} in ${escHtml(place)}
+                    </label>`);
+                });
+            }
+            if (cf.relationships?.length) {
+                cf.relationships.forEach((r, i) => {
+                    cfRows.push(`<label class="ms-approval-item">
+                        <input type="checkbox" checked data-section="cf-relationships" data-index="${i}">
+                        <span class="ms-badge ms-badge-purple">relation</span>
+                        ${escHtml(r.name)}: ${escHtml(r.type || '')}
+                    </label>`);
+                });
+            }
+            if (cfRows.length) {
+                sections.push(`<div class="ms-section"><h4>Character Knowledge — ${escHtml(characterName)}</h4>${cfRows.join('')}</div>`);
+            }
         }
 
         // --- World Facts ---
@@ -281,7 +351,10 @@ export async function showApprovalDialog(extraction, characterName) {
                     ${escHtml(e)}
                 </label>`
             ).join('');
-            sections.push(`<div class="ms-section"><h4>Memories</h4>${rows}</div>`);
+            const eventsNote = isGroupMode
+                ? '<p class="ms-hint" style="margin:2px 0 6px;">Saved to every character in the scene.</p>'
+                : '';
+            sections.push(`<div class="ms-section"><h4>Memories</h4>${eventsNote}${rows}</div>`);
         }
 
         if (!sections.length) {
@@ -336,16 +409,19 @@ export async function showApprovalDialog(extraction, characterName) {
  */
 function buildApprovedResult(dialogEl, extraction) {
     const personaFacts = {};
-    const characterFacts = {};
+    const characterFacts = {};   // solo mode only
+    const characters = {};       // group mode: keyed by character name
     const worldFacts = [];
     const events = [];
     const pf = extraction.personaFacts || {};
     const cf = extraction.characterFacts || {};
+    const groupCharsMap = extraction.characters || {};
 
     dialogEl.find('input[type=checkbox]:checked').each(function () {
         const section = $(this).data('section');
         const index = $(this).data('index');
         const key = $(this).data('key');
+        const charName = $(this).data('char');  // present for char-* sections (group mode)
 
         switch (section) {
             // --- Persona Facts ---
@@ -369,7 +445,7 @@ function buildApprovedResult(dialogEl, extraction) {
                 personaFacts.custom = personaFacts.custom || {};
                 personaFacts.custom[key] = pf.custom[key];
                 break;
-            // --- Character Facts ---
+            // --- Character Facts (solo / legacy) ---
             case 'cf-titles':
                 characterFacts.titles = characterFacts.titles || [];
                 characterFacts.titles.push(cf.titles[index]);
@@ -386,6 +462,39 @@ function buildApprovedResult(dialogEl, extraction) {
                 characterFacts.relationships = characterFacts.relationships || [];
                 characterFacts.relationships.push(cf.relationships[index]);
                 break;
+            // --- Character Facts (group mode — per-character) ---
+            case 'char-titles': {
+                const src = groupCharsMap[charName];
+                if (!src) break;
+                characters[charName] = characters[charName] || {};
+                characters[charName].titles = characters[charName].titles || [];
+                characters[charName].titles.push(src.titles[index]);
+                break;
+            }
+            case 'char-factions': {
+                const src = groupCharsMap[charName];
+                if (!src) break;
+                characters[charName] = characters[charName] || {};
+                characters[charName].factions = characters[charName].factions || [];
+                characters[charName].factions.push(src.factions[index]);
+                break;
+            }
+            case 'char-reputation': {
+                const src = groupCharsMap[charName];
+                if (!src) break;
+                characters[charName] = characters[charName] || {};
+                characters[charName].reputation = characters[charName].reputation || {};
+                characters[charName].reputation[key] = src.reputation[key];
+                break;
+            }
+            case 'char-relationships': {
+                const src = groupCharsMap[charName];
+                if (!src) break;
+                characters[charName] = characters[charName] || {};
+                characters[charName].relationships = characters[charName].relationships || [];
+                characters[charName].relationships.push(src.relationships[index]);
+                break;
+            }
             // --- World / Events ---
             case 'worldFacts':
                 worldFacts.push(extraction.worldFacts[index]);
@@ -396,7 +505,15 @@ function buildApprovedResult(dialogEl, extraction) {
         }
     });
 
-    return { personaFacts, characterFacts, worldFacts, events };
+    // Return characters map only if group mode was used
+    const hasGroupChars = Object.keys(characters).length > 0;
+    return {
+        personaFacts,
+        characterFacts,
+        ...(hasGroupChars ? { characters } : {}),
+        worldFacts,
+        events,
+    };
 }
 
 function escHtml(str) {

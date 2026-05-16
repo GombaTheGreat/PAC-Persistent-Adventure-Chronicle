@@ -8,10 +8,11 @@ import { generateRaw } from '../../../../../script.js';
 import { getSummaries, appendSummary, getSharedSummaries, appendSharedSummary } from './api.js';
 
 export const DEFAULT_SUMMARY_PROMPT =
-    'You are a narrator writing a concise summary of what happened in this roleplay session. ' +
-    'Focus on key events, decisions, and changes to the character\'s situation. ' +
-    'Keep it under {{words}} words. Write in past tense, third person. ' +
-    'Do not include meta-commentary about the roleplay format itself.';
+    'You are writing a session recap focused on the AI character "{{characterName}}".\n' +
+    'Focus on {{characterName}}\'s experiences specifically: what they did, what they witnessed, ' +
+    'who they interacted with, and how their situation changed.\n' +
+    'Write in past tense, third person (e.g. "{{characterName}} did X, felt Y"). ' +
+    'Under {{words}} words. Do not include meta-commentary about the roleplay format itself.';
 
 /**
  * Generate a new session summary using the main LLM.
@@ -27,7 +28,9 @@ export const DEFAULT_SUMMARY_PROMPT =
 export async function generateSessionSummary(avatarId, worldTag, characterName, chatMessages, chatId, promptTemplate = DEFAULT_SUMMARY_PROMPT, targetWords = 200, windowMessages = 60) {
     if (!chatMessages?.length) return null;
 
-    const systemPrompt = promptTemplate.replace('{{words}}', String(targetWords));
+    const systemPrompt = promptTemplate
+        .replace(/\{\{characterName\}\}/g, characterName)
+        .replace(/\{\{words\}\}/g, String(targetWords));
 
     const transcript = chatMessages
         .slice(-windowMessages)
@@ -72,7 +75,9 @@ export async function generateSessionSummary(avatarId, worldTag, characterName, 
 export async function generateSharedSessionSummary(worldTag, characterName, chatMessages, chatId, promptTemplate = DEFAULT_SUMMARY_PROMPT, targetWords = 200, windowMessages = 60) {
     if (!chatMessages?.length) return null;
 
-    const systemPrompt = promptTemplate.replace('{{words}}', String(targetWords));
+    const systemPrompt = promptTemplate
+        .replace(/\{\{characterName\}\}/g, characterName)
+        .replace(/\{\{words\}\}/g, String(targetWords));
     const transcript = chatMessages
         .slice(-windowMessages)
         .filter(m => m.mes && m.mes.trim().length > 5)

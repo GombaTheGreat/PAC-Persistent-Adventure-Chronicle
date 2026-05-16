@@ -117,6 +117,19 @@ export function invalidateIdentityCache(avatarId) {
     }
 }
 
+/**
+ * Invalidate the cache for a single character (persona-scoped + shared pool).
+ * Used in group chats to force a fresh fetch for the responding character each turn,
+ * preventing stale Layer 1 data from persisting across the session.
+ * @param {string} avatarId
+ * @param {string} worldTag
+ * @param {string} charName
+ */
+export function invalidateCharacterCacheEntry(avatarId, worldTag, charName) {
+    cache.delete(charKey(avatarId, worldTag, charName));
+    sharedCache.delete(`ck:${worldTag}:${charName}`);
+}
+
 // ---------------------------------------------------------------------------
 // Character identity — scoped to worldTag + charName (no persona dependency)
 // ---------------------------------------------------------------------------

@@ -477,7 +477,27 @@
 
                 <!-- Tab: Preview (was Injection) -->
                 <div class="ms-tab-content hidden" data-tab="inject">
-                    <div class="ms-section-title">Last Injection Preview</div>
+
+                    <div class="ms-section-title">Auto Trigger Counters</div>
+                    <p class="ms-hint">Messages accumulated toward the next auto-extraction and auto-summary. Updates on every received message.</p>
+                    <div class="ms-counter-block">
+                        <div class="ms-counter-row">
+                            <span class="ms-counter-label">Extraction</span>
+                            <div class="ms-counter-track">
+                                <div class="ms-counter-fill ms-counter-fill-extract" id="ms-counter-bar-extraction"></div>
+                            </div>
+                            <span class="ms-counter-value" id="ms-counter-extraction">—</span>
+                        </div>
+                        <div class="ms-counter-row">
+                            <span class="ms-counter-label">Summary</span>
+                            <div class="ms-counter-track">
+                                <div class="ms-counter-fill ms-counter-fill-summary" id="ms-counter-bar-summary"></div>
+                            </div>
+                            <span class="ms-counter-value" id="ms-counter-summary">—</span>
+                        </div>
+                    </div>
+
+                    <div class="ms-section-title" style="margin-top:14px;">Last Injection Preview</div>
                     <p class="ms-hint">Exact text added to the last prompt. Click a layer to expand.</p>
                     <div id="ms-injection-preview">
                         <p class="ms-hint" style="padding:4px 0;">Send a message to populate this view — it shows exactly what PAC added to the last prompt.</p>
