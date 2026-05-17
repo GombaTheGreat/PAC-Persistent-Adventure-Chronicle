@@ -191,7 +191,7 @@ export async function init(router) {
     // Health check — lightweight ping to confirm the plugin is alive
     // -----------------------------------------------------------------------
 
-    router.get('/health', (_req, res) => res.json({ ok: true }));
+    router.get('/health', (_req, res) => res.json({ ok: true, pluginVersion: 2 }));
 
     // -----------------------------------------------------------------------
     // Personas — list, meta, delete

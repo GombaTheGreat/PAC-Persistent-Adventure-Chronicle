@@ -3189,10 +3189,21 @@ async function init() {
     await initSettingsPanel();
 
     // Plugin health check — show persistent banner + first-time setup modal
+    const REQUIRED_PLUGIN_VERSION = 2;
     try {
-        await healthCheck();
-        pluginOnline = true;
-        $('#ms-plugin-banner').addClass('hidden');
+        const health = await healthCheck();
+        const pluginVersion = health?.pluginVersion ?? 1;
+        if (pluginVersion < REQUIRED_PLUGIN_VERSION) {
+            pluginOnline = false;
+            $('#ms-plugin-banner').removeClass('hidden').text(
+                `⚠ PAC server plugin is outdated (v${pluginVersion}, need v${REQUIRED_PLUGIN_VERSION}). ` +
+                `Re-copy server-plugin/index.mjs to your SillyTavern/plugins/pac/ folder and restart.`
+            );
+            console.warn(`[PAC] Server plugin version ${pluginVersion} is outdated — need ${REQUIRED_PLUGIN_VERSION}. Memory editing will not work.`);
+        } else {
+            pluginOnline = true;
+            $('#ms-plugin-banner').addClass('hidden');
+        }
     } catch {
         pluginOnline = false;
         $('#ms-plugin-banner').removeClass('hidden');
