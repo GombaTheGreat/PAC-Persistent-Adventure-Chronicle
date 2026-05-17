@@ -257,4 +257,4 @@ Use at your own risk. Back up your data regularly using the Persona Management e
 
 ---
 
-*PAC v0.5.0 — by [GombaTheGreat](https://github.com/GombaTheGreat)*
+*PAC - by [GombaTheGreat](https://github.com/GombaTheGreat)*
