@@ -1816,8 +1816,14 @@ function bindSettingsEvents() {
             }
             toastr.success('Memory updated.');
             await loadEventLog();
-        } catch {
-            toastr.error('Failed to save memory.');
+        } catch (err) {
+            console.error('[PAC] Memory save failed — index:', index, 'char:', characterName, 'world:', currentWorldTag, err);
+            if (err?.message?.includes('404')) {
+                toastr.warning('Memory list changed since last load — refreshing. Please try the edit again.');
+                await loadEventLog();
+            } else {
+                toastr.error(`Failed to save memory: ${err?.message || err}`);
+            }
         }
     });
     // Memory edit — cancel
@@ -2760,7 +2766,11 @@ async function confirmAndSetPersistentWorld(worldTag, turningOn, $checkboxToReve
     setWorldSetting(worldTag, 'persistentWorld', turningOn);
     if (worldTag === currentWorldTag) {
         invalidateSharedCache(worldTag);
+        invalidateIdentityCache(currentPersonaId || resolvePersonaId());
         updatePersistentWorldStatusToggle();
+        refreshIdentityPanel();
+        if ($('.ms-tab-content[data-tab="events"]').is(':visible'))  loadEventLog();
+        if ($('.ms-tab-content[data-tab="summary"]').is(':visible')) loadSummaryList();
     }
     return true;
 }
