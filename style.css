@@ -494,6 +494,19 @@
     font-size: 0.79em;
 }
 
+/* ── Warning box ────────────────────────────────────────────── */
+
+.ms-warning-box {
+    background: rgba(192, 57, 43, 0.12);
+    border: 1px solid rgba(192, 57, 43, 0.5);
+    border-radius: 4px;
+    color: #e57373;
+    font-size: 0.85em;
+    line-height: 1.5;
+    padding: 7px 10px;
+    margin-bottom: 10px;
+}
+
 /* ── Buttons ───────────────────────────────────────────────── */
 
 button.menu_button.danger {
@@ -1317,6 +1330,16 @@ button.menu_button.danger:hover {
     flex-shrink: 0;
 }
 
+.ms-preview-pos-badge {
+    font-size: 0.7em;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: var(--SmartThemeBlurTintColor, rgba(255,255,255,0.08));
+    color: var(--SmartThemeEmColor, #999);
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
 .ms-preview-text {
     margin: 0;
     padding: 8px 10px;
@@ -1479,6 +1502,114 @@ button.menu_button.danger:hover {
     width: 46px;
     text-align: right;
     flex-shrink: 0;
+}
+
+/* ── General tab — injection placement diagram ─────────────── */
+
+.ms-inject-diagram {
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 6px;
+    overflow: hidden;
+    font-size: 0.8em;
+    font-family: monospace;
+    margin-bottom: 2px;
+}
+
+.ms-inject-diagram-block {
+    padding: 4px 10px;
+    color: var(--SmartThemeEmColor, #888);
+    background: transparent;
+}
+
+.ms-inject-diagram-current {
+    border-top: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+}
+
+.ms-inject-diagram-gap {
+    height: 6px;
+    border-top: 1px dashed var(--SmartThemeBorderColor, #3a3a3a);
+    border-bottom: 1px dashed var(--SmartThemeBorderColor, #3a3a3a);
+    background: transparent;
+}
+
+.ms-inject-diagram-slot {
+    padding: 4px 10px;
+    font-weight: 600;
+    color: var(--SmartThemeBodyColor, #ccc);
+    border-left: 3px solid transparent;
+    background: var(--SmartThemeBlurTintColor, rgba(255,255,255,0.04));
+}
+
+.ms-inject-slot-before {
+    border-left-color: #5b9bd5;
+}
+
+.ms-inject-slot-after {
+    border-left-color: #9b72cf;
+}
+
+.ms-inject-slot-depth {
+    border-left-color: #4caf7d;
+}
+
+.ms-inject-diagram-system-box {
+    border: 1px solid var(--SmartThemeBorderColor, #3a3a3a);
+    border-radius: 3px;
+    margin: 3px 4px 0;
+    overflow: hidden;
+}
+
+/* ── General tab — injection placement ────────────────────── */
+
+.ms-inject-layer-header,
+.ms-inject-layer-row {
+    display: grid;
+    grid-template-columns: 10px 112px 1fr 52px 80px;
+    gap: 6px;
+    align-items: center;
+    margin-top: 6px;
+}
+
+.ms-inject-layer-header span {
+    font-size: 0.78em;
+    color: var(--SmartThemeEmColor, #888);
+    text-align: center;
+}
+
+.ms-inject-layer-header span:nth-child(2) {
+    text-align: left;
+}
+
+.ms-inject-col-label {
+    font-size: 0.85em;
+    color: var(--SmartThemeBodyColor, #ccc);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ms-inject-position,
+.ms-inject-role,
+.ms-inject-depth {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--SmartThemeBlurTintColor, #1a1a1a);
+    color: var(--SmartThemeBodyColor, #ccc);
+    border: 1px solid var(--SmartThemeBorderColor, #444);
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: 0.82em;
+}
+
+.ms-inject-depth {
+    text-align: center;
+}
+
+.ms-inject-position:disabled,
+.ms-inject-role:disabled,
+.ms-inject-depth:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
 /* ── Overview tab ──────────────────────────────────────────── */

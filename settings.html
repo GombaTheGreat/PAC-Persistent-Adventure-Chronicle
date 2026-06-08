@@ -562,6 +562,99 @@
                     <div class="ms-row" style="margin-top:4px;">
                         <button id="ms-btn-reset-consolidation-prompt" class="menu_button">Reset to Default</button>
                     </div>
+
+                    <div class="ms-advanced-sub-toggle" id="ms-inject-placement-toggle" style="margin-top:18px;">
+                        <span>⚙</span>
+                        <span>Advanced: Injection Placement</span>
+                    </div>
+                    <div id="ms-inject-placement-panel" class="ms-advanced-sub-panel hidden">
+                        <div class="ms-warning-box">
+                            ⚠ <strong>Limited functionality in SillyTavern Chat Completion mode!</strong><br>
+                            Check your Advanced Formatting Settings for <em>anchorBefore</em> (= "Before Prompt") and <em>anchorAfter</em> (= "In Prompt") for full functionality.
+                        </div>
+                        <div class="ms-inject-diagram">
+                            <div class="ms-inject-diagram-system-box">
+                                <div class="ms-inject-diagram-slot ms-inject-slot-before">↑ Before prompt</div>
+                                <div class="ms-inject-diagram-block">Character card content</div>
+                                <div class="ms-inject-diagram-slot ms-inject-slot-after">↓ In prompt</div>
+                            </div>
+                            <div class="ms-inject-diagram-gap"></div>
+                            <div class="ms-inject-diagram-block">Chat history…</div>
+                            <div class="ms-inject-diagram-slot ms-inject-slot-depth">● At depth — injected as a chat message</div>
+                            <div class="ms-inject-diagram-block ms-inject-diagram-current">Current message</div>
+                        </div>
+                        <p class="ms-hint" style="margin-top:8px;"><strong>Before prompt</strong> and <strong>In prompt</strong> both inject inside the system message — at the top or bottom of the character card block. <strong>At depth</strong> injects as a separate chat message. Depth and Role only apply to "At depth". Hover the position dropdown for details.</p>
+                        <div class="ms-inject-layer-header">
+                            <span></span>
+                            <span></span>
+                            <span>Position</span>
+                            <span>Depth</span>
+                            <span>Role</span>
+                        </div>
+                        <div class="ms-inject-layer-row" data-layer="identity">
+                            <span class="ms-layer-dot ms-dot-identity"></span>
+                            <span class="ms-inject-col-label">Identity Profile</span>
+                            <select class="ms-inject-position">
+                                <option value="2">Before prompt</option>
+                                <option value="0">In prompt</option>
+                                <option value="1">At depth (in chat)</option>
+                            </select>
+                            <input type="number" class="ms-inject-depth" min="0" max="10000" value="1">
+                            <select class="ms-inject-role">
+                                <option value="0">System</option>
+                                <option value="1">User</option>
+                                <option value="2">Assistant</option>
+                            </select>
+                        </div>
+                        <div class="ms-inject-layer-row" data-layer="charIdentity">
+                            <span class="ms-layer-dot ms-dot-char"></span>
+                            <span class="ms-inject-col-label">Char. Knowledge</span>
+                            <select class="ms-inject-position">
+                                <option value="2">Before prompt</option>
+                                <option value="0">In prompt</option>
+                                <option value="1">At depth (in chat)</option>
+                            </select>
+                            <input type="number" class="ms-inject-depth" min="0" max="10000" value="1">
+                            <select class="ms-inject-role">
+                                <option value="0">System</option>
+                                <option value="1">User</option>
+                                <option value="2">Assistant</option>
+                            </select>
+                        </div>
+                        <div class="ms-inject-layer-row" data-layer="summary">
+                            <span class="ms-layer-dot ms-dot-summary"></span>
+                            <span class="ms-inject-col-label">Story So Far</span>
+                            <select class="ms-inject-position">
+                                <option value="2">Before prompt</option>
+                                <option value="0">In prompt</option>
+                                <option value="1">At depth (in chat)</option>
+                            </select>
+                            <input type="number" class="ms-inject-depth" min="0" max="10000" value="1">
+                            <select class="ms-inject-role">
+                                <option value="0">System</option>
+                                <option value="1">User</option>
+                                <option value="2">Assistant</option>
+                            </select>
+                        </div>
+                        <div class="ms-inject-layer-row" data-layer="events">
+                            <span class="ms-layer-dot ms-dot-events"></span>
+                            <span class="ms-inject-col-label">Memories</span>
+                            <select class="ms-inject-position">
+                                <option value="2">Before prompt</option>
+                                <option value="0">In prompt</option>
+                                <option value="1">At depth (in chat)</option>
+                            </select>
+                            <input type="number" class="ms-inject-depth" min="0" max="10000" value="1">
+                            <select class="ms-inject-role">
+                                <option value="0">System</option>
+                                <option value="1">User</option>
+                                <option value="2">Assistant</option>
+                            </select>
+                        </div>
+                        <div style="margin-top:8px;text-align:right;">
+                            <button id="ms-apply-injection" class="menu_button" title="Re-inject all layers now with the current settings">Apply</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Tab: Persona -->

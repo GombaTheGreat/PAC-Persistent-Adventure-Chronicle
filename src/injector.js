@@ -2,11 +2,12 @@
  * Injection engine — assembles memory context and injects it into the chat history via 4 slots.
  * Fires on GENERATE_BEFORE_COMBINE_PROMPTS.
  *
- * Prompt slots — all injected as IN_CHAT depth=1 (right before the current message):
- *   KEY_IDENTITY      depth 1  role=SYSTEM     [Your Profile] + [World State]
- *   KEY_CHAR_IDENTITY depth 1  role=SYSTEM     [CharName — Character Knowledge]
- *   KEY_SUMMARY       depth 1  role=SYSTEM     Story So Far
- *   KEY_EVENTS        depth 1  role=ASSISTANT  Memories — fills remaining budget (RAG-retrieved)
+ * Prompt slots — position/depth/role are user-configurable via settings.inject.layers;
+ * defaults are IN_CHAT depth=1 for all slots, SYSTEM for the first three, ASSISTANT for events:
+ *   KEY_IDENTITY      [Your Profile] + [World State]
+ *   KEY_CHAR_IDENTITY [CharName — Character Knowledge]
+ *   KEY_SUMMARY       Story So Far
+ *   KEY_EVENTS        Memories — fills remaining budget (RAG-retrieved)
  *
  * The return value exposes 5 named sub-components for UI display purposes:
  *   profileText / worldStateText — the two sections within KEY_IDENTITY
@@ -27,7 +28,6 @@ const KEY_CHAR_IDENTITY = 'pac_char_identity';
 const KEY_SUMMARY       = 'pac_summary';
 const KEY_EVENTS        = 'pac_events';
 
-const IN_CHAT    = extension_prompt_types.IN_CHAT;
 const SYSTEM     = extension_prompt_roles.SYSTEM;
 const ASSISTANT  = extension_prompt_roles.ASSISTANT;
 
@@ -91,6 +91,15 @@ export async function buildAndInjectContext(context, avatarId, worldTag, persist
 
     clearInjections();
 
+    const IN_CHAT   = extension_prompt_types.IN_CHAT;
+    const layerDefs = settings.inject?.layers ?? {};
+    const lCfg = {
+        identity:     { position: IN_CHAT, depth: 1, role: SYSTEM,    ...(layerDefs.identity    ?? {}) },
+        charIdentity: { position: IN_CHAT, depth: 1, role: SYSTEM,    ...(layerDefs.charIdentity ?? {}) },
+        summary:      { position: IN_CHAT, depth: 1, role: SYSTEM,    ...(layerDefs.summary     ?? {}) },
+        events:       { position: IN_CHAT, depth: 1, role: ASSISTANT, ...(layerDefs.events      ?? {}) },
+    };
+
     const budget   = settings.contextBudgetTokens ?? 1200;
     const minEvts  = settings.inject?.minEvents  ?? 0;
     const minSumm  = settings.inject?.minSummary ?? 0;
@@ -124,7 +133,7 @@ export async function buildAndInjectContext(context, avatarId, worldTag, persist
 
                 const combined = [personaText, worldText].filter(Boolean).join('\n\n');
                 if (combined) {
-                    setExtensionPrompt(KEY_IDENTITY, combined, IN_CHAT, 1, false, SYSTEM);
+                    setExtensionPrompt(KEY_IDENTITY, combined, lCfg.identity.position, lCfg.identity.depth, false, lCfg.identity.role);
                     layer1Text   = combined;
                     layer1Tokens = est(combined);
                     used += layer1Tokens;
@@ -138,7 +147,7 @@ export async function buildAndInjectContext(context, avatarId, worldTag, persist
                 const sharedChar    = await loadSharedCharKnowledge(worldTag, characterName);
                 const charIdentText = formatCharacterIdentity(sharedChar, characterName);
                 if (charIdentText) {
-                    setExtensionPrompt(KEY_CHAR_IDENTITY, charIdentText, IN_CHAT, 1, false, SYSTEM);
+                    setExtensionPrompt(KEY_CHAR_IDENTITY, charIdentText, lCfg.charIdentity.position, lCfg.charIdentity.depth, false, lCfg.charIdentity.role);
                     layer1Tokens += est(charIdentText);
                     used += est(charIdentText);
                     layer1Text = layer1Text ? `${layer1Text}\n\n${charIdentText}` : charIdentText;
@@ -161,7 +170,7 @@ export async function buildAndInjectContext(context, avatarId, worldTag, persist
                 worldStateTokens = est(wfText || '');
 
                 if (personaText) {
-                    setExtensionPrompt(KEY_IDENTITY, personaText, IN_CHAT, 1, false, SYSTEM);
+                    setExtensionPrompt(KEY_IDENTITY, personaText, lCfg.identity.position, lCfg.identity.depth, false, lCfg.identity.role);
                     layer1Text   = personaText;
                     layer1Tokens = est(personaText);
                     used += layer1Tokens;
@@ -171,7 +180,7 @@ export async function buildAndInjectContext(context, avatarId, worldTag, persist
                 const charIdentity  = await loadIdentity(avatarId, worldTag, characterName);
                 const charIdentText = formatCharacterIdentity(charIdentity, characterName);
                 if (charIdentText) {
-                    setExtensionPrompt(KEY_CHAR_IDENTITY, charIdentText, IN_CHAT, 1, false, SYSTEM);
+                    setExtensionPrompt(KEY_CHAR_IDENTITY, charIdentText, lCfg.charIdentity.position, lCfg.charIdentity.depth, false, lCfg.charIdentity.role);
                     layer1Tokens += est(charIdentText);
                     used += est(charIdentText);
                     layer1Text = layer1Text ? `${layer1Text}\n\n${charIdentText}` : charIdentText;
@@ -199,7 +208,7 @@ export async function buildAndInjectContext(context, avatarId, worldTag, persist
             const text = formatSummaries(summaries, 1);
             const summaryBudget = Math.max(minSumm, budget - used - minEvts);
             if (text && est(text) <= summaryBudget) {
-                setExtensionPrompt(KEY_SUMMARY, text, IN_CHAT, 1, false, SYSTEM);
+                setExtensionPrompt(KEY_SUMMARY, text, lCfg.summary.position, lCfg.summary.depth, false, lCfg.summary.role);
                 layer2Text   = text;
                 layer2Tokens = est(text);
                 used += layer2Tokens;
@@ -250,7 +259,7 @@ export async function buildAndInjectContext(context, avatarId, worldTag, persist
                 }
 
                 if (eventText) {
-                    setExtensionPrompt(KEY_EVENTS, eventText, IN_CHAT, 1, false, ASSISTANT);
+                    setExtensionPrompt(KEY_EVENTS, eventText, lCfg.events.position, lCfg.events.depth, false, lCfg.events.role);
                     layer3Text   = eventText;
                     layer3Tokens = est(eventText);
                 }
@@ -280,6 +289,6 @@ export async function buildAndInjectContext(context, avatarId, worldTag, persist
 /** Remove all PAC injection slots. */
 export function clearInjections() {
     for (const key of [KEY_IDENTITY, KEY_CHAR_IDENTITY, KEY_SUMMARY, KEY_EVENTS]) {
-        setExtensionPrompt(key, '', IN_CHAT, 0);
+        setExtensionPrompt(key, '', extension_prompt_types.IN_CHAT, 0);
     }
 }

@@ -29,6 +29,12 @@ import { healthCheck, listPersonas, deletePersonaData, exportPersona, importPers
 
 const MODULE_NAME = 'pac';
 
+const INJECT_POSITION_TIPS = {
+    2: 'Before prompt — injected at the top of the system prompt, before the character description',
+    0: 'In prompt — injected at the bottom of the system prompt, after all character card content',
+    1: 'At depth — injected as a chat message at the specified depth before the current message',
+};
+
 // ---------------------------------------------------------------------------
 // Built-in world tag master list
 // ---------------------------------------------------------------------------
@@ -81,6 +87,12 @@ const DEFAULT_SETTINGS = {
         minIdentity: 0,   // informational — identity always injects in full
         minSummary:  0,   // reserved from events' budget ceiling
         minEvents:   0,   // guaranteed minimum for event layer (enforced)
+        layers: {
+            identity:     { position: 1, depth: 1, role: 0 },
+            charIdentity: { position: 1, depth: 1, role: 0 },
+            summary:      { position: 1, depth: 1, role: 0 },
+            events:       { position: 1, depth: 1, role: 2 },
+        },
     },
     eventTopK: 8,
     extraction: {
@@ -355,6 +367,10 @@ function getSettings() {
     }
     const s = extension_settings[MODULE_NAME];
     s.inject               = { ...DEFAULT_SETTINGS.inject,         ...s.inject };
+    s.inject.layers        = Object.fromEntries(
+        Object.entries({ ...DEFAULT_SETTINGS.inject.layers, ...s.inject.layers })
+            .map(([k, v]) => [k, { ...v }])
+    );
     s.extraction           = { ...DEFAULT_SETTINGS.extraction,     ...s.extraction };
     s.summary              = { ...DEFAULT_SETTINGS.summary,        ...s.summary };
     s.consolidation        = { ...DEFAULT_SETTINGS.consolidation,  ...s.consolidation };
@@ -1219,6 +1235,22 @@ function updateAutoCounters() {
     }
 }
 
+/**
+ * Re-run injection with current settings immediately.
+ * Needed because extension_prompts slots are only updated on generation/chat events.
+ * Called by the Apply button and on discrete setting changes (position, role).
+ */
+async function applyInjectionSettings() {
+    if (!currentWorldTag) return;
+    const context = getContext();
+    const avatarId = currentPersonaId || resolvePersonaId();
+    const { persistentWorld } = getWorldSettings(currentWorldTag);
+    const charName = context.name2 || currentCharacterName;
+    lastInjectionBreakdown = await buildAndInjectContext(context, avatarId, currentWorldTag, persistentWorld, charName) || null;
+    updateBudgetDisplay();
+    renderInjectionPreview(lastInjectionBreakdown);
+}
+
 function updateBudgetDisplay() {
     const budget = getSettings().contextBudgetTokens ?? 1200;
     $('#ms-budget-token-display').text(`${budget.toLocaleString()} tokens`);
@@ -1256,13 +1288,23 @@ function renderInjectionPreview(bd) {
         return;
     }
 
+    // Position badge helper — shows where each layer actually injects
+    const layerCfgs = getSettings().inject?.layers ?? {};
+    const posBadge = (key) => {
+        const cfg = layerCfgs[key] ?? {};
+        const pos = cfg.position ?? 1;
+        if (pos === 2) return 'Before prompt';
+        if (pos === 0) return 'In prompt';
+        return `At depth ${cfg.depth ?? 1}`;
+    };
+
     // Five named layers — one per tab, each showing what was actually injected
     const layers = [
-        { text: bd.profileText,    tokens: bd.profileTokens    || 0, label: 'Your Active Persona', color: '#3498db' },
-        { text: bd.worldStateText, tokens: bd.worldStateTokens || 0, label: 'World State',  color: '#f39c12' },
-        { text: bd.charText,       tokens: bd.charTokens       || 0, label: 'Character',    color: '#9b59b6' },
-        { text: bd.layer2Text,     tokens: bd.layer2           || 0, label: 'Story So Far', color: '#2ecc71' },
-        { text: bd.layer3Text,     tokens: bd.layer3           || 0, label: 'Memories',     color: '#e67e22' },
+        { text: bd.profileText,    tokens: bd.profileTokens    || 0, label: 'Your Active Persona', color: '#3498db', settingsKey: 'identity' },
+        { text: bd.worldStateText, tokens: bd.worldStateTokens || 0, label: 'World State',          color: '#f39c12', settingsKey: 'identity' },
+        { text: bd.charText,       tokens: bd.charTokens       || 0, label: 'Character',            color: '#9b59b6', settingsKey: 'charIdentity' },
+        { text: bd.layer2Text,     tokens: bd.layer2           || 0, label: 'Story So Far',         color: '#2ecc71', settingsKey: 'summary' },
+        { text: bd.layer3Text,     tokens: bd.layer3           || 0, label: 'Memories',             color: '#e67e22', settingsKey: 'events' },
     ];
 
     const total  = bd.used ?? (bd.layer1 + bd.layer2 + bd.layer3);
@@ -1287,6 +1329,7 @@ function renderInjectionPreview(bd) {
             <div class="ms-preview-layer">
                 <div class="ms-preview-layer-header" style="border-left-color:${layer.color}">
                     <span class="ms-preview-layer-label">${layer.label}</span>
+                    <span class="ms-preview-pos-badge">${posBadge(layer.settingsKey)}</span>
                     <span class="ms-hint" style="margin:0;">${layer.tokens.toLocaleString()} tk</span>
                     <span class="ms-preview-toggle">▶</span>
                 </div>
@@ -1775,6 +1818,39 @@ function bindSettingsEvents() {
     $(document).on('click', '#ms-events-advanced-toggle', function () {
         $('#ms-events-advanced-panel').toggleClass('hidden');
     });
+
+    // Injection Placement advanced sub-toggle (General tab)
+    $(document).on('click', '#ms-inject-placement-toggle', function () {
+        $('#ms-inject-placement-panel').toggleClass('hidden');
+    });
+    $(document).on('change', '.ms-inject-position', function () {
+        const row = $(this).closest('.ms-inject-layer-row');
+        const layer = row.data('layer');
+        const position = parseInt($(this).val());
+        const s = getSettings();
+        s.inject.layers[layer] = { ...s.inject.layers[layer], position };
+        $(this).attr('title', INJECT_POSITION_TIPS[position] ?? '');
+        const isInChat = position === 1;
+        row.find('.ms-inject-depth').prop('disabled', !isInChat);
+        row.find('.ms-inject-role').prop('disabled', !isInChat);
+        saveSettingsDebounced();
+        applyInjectionSettings().catch(() => {});
+    });
+    $(document).on('input', '.ms-inject-depth', function () {
+        const layer = $(this).closest('.ms-inject-layer-row').data('layer');
+        const s = getSettings();
+        s.inject.layers[layer] = { ...s.inject.layers[layer], depth: parseInt($(this).val()) || 1 };
+        saveSettingsDebounced();
+        // depth is typed character-by-character; Apply button handles immediate re-injection
+    });
+    $(document).on('change', '.ms-inject-role', function () {
+        const layer = $(this).closest('.ms-inject-layer-row').data('layer');
+        const s = getSettings();
+        s.inject.layers[layer] = { ...s.inject.layers[layer], role: parseInt($(this).val()) };
+        saveSettingsDebounced();
+        applyInjectionSettings().catch(() => {});
+    });
+    $(document).on('click', '#ms-apply-injection', () => applyInjectionSettings().catch(() => {}));
     $(document).on('click', '#ms-btn-add-event', () => addManualEvent());
     $(document).on('click', '#ms-events-list .ms-viewer-delete', function () {
         const index = parseInt($(this).data('index'));
@@ -2350,6 +2426,17 @@ function populateSettingsPanel() {
     $('#ms-min-events').val(minE);
     $('#ms-min-events-display').text(`${minE} tk`);
     checkLayerMinWarning(budget, minS, minE);
+
+    // Advanced: Injection Placement
+    const layers = s.inject.layers;
+    for (const [name, cfg] of Object.entries(layers)) {
+        const row = $(`.ms-inject-layer-row[data-layer="${name}"]`);
+        const $pos = row.find('.ms-inject-position');
+        $pos.val(cfg.position).attr('title', INJECT_POSITION_TIPS[cfg.position] ?? '');
+        const isInChat = cfg.position === 1;
+        row.find('.ms-inject-depth').val(cfg.depth).prop('disabled', !isInChat);
+        row.find('.ms-inject-role').val(cfg.role).prop('disabled', !isInChat);
+    }
 }
 
 // ---------------------------------------------------------------------------
