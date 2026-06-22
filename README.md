@@ -6,7 +6,7 @@
 
 > A SillyTavern extension that gives your AI characters real, lasting memory across every chat session.
 
-[![Version](https://img.shields.io/badge/version-0.7.0-blue.svg)](https://github.com/GombaTheGreat/PAC-Persistent-Adventure-Chronicle/releases)
+[![Version](https://img.shields.io/badge/version-0.8.0-blue.svg)](https://github.com/GombaTheGreat/PAC-Persistent-Adventure-Chronicle/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![SillyTavern](https://img.shields.io/badge/SillyTavern-extension-7c5cbf.svg)](https://sillytavern.app)
 
