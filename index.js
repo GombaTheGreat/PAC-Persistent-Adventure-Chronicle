@@ -1889,9 +1889,22 @@ function bindSettingsEvents() {
                 await updateSharedEvent(currentWorldTag, characterName, index, newText);
             } else {
                 await updateEvent(avatarId, currentWorldTag, characterName, index, newText);
+                // Editing changes the text, so the old wording's embedding is now
+                // orphaned and the new text is unindexed. Purge + rebuild from the
+                // updated events so semantic search reflects the edit. Mirrors deleteEventEntry.
+                try {
+                    const remaining = await getEvents(avatarId, currentWorldTag, characterName, { limit: 2000 });
+                    await purgeEventVectors(avatarId, currentWorldTag, characterName);
+                    if (remaining.length) {
+                        await rebuildEventIndex(avatarId, currentWorldTag, characterName, remaining);
+                    }
+                } catch (vecErr) {
+                    console.warn('[PAC] Vector cleanup after edit failed (non-critical):', vecErr);
+                }
             }
             toastr.success('Memory updated.');
             await loadEventLog();
+            await applyInjectionSettings().catch(() => {});
         } catch (err) {
             console.error('[PAC] Memory save failed — index:', index, 'char:', characterName, 'world:', currentWorldTag, err);
             if (err?.message?.includes('404')) {
@@ -1965,6 +1978,7 @@ function bindSettingsEvents() {
             }
             toastr.success('Summary updated.');
             await loadSummaryList();
+            await applyInjectionSettings().catch(() => {});
         } catch {
             toastr.error('Failed to save summary.');
         }
@@ -3076,6 +3090,7 @@ async function addManualEvent() {
         $('#ms-manual-event-input').val('');
         toastr.success('Event added.');
         await loadEventLog();
+        await applyInjectionSettings().catch(() => {});
     } catch {
         toastr.error('Failed to add event.');
     }
@@ -3092,8 +3107,23 @@ async function deleteEventEntry(index) {
             await deleteSharedEvent(currentWorldTag, characterName, index);
         } else {
             await deleteEvent(avatarId, currentWorldTag, characterName, index);
+            // Vector index is persona-scoped and only used for non-persistent
+            // worlds. Purge + rebuild from survivors so the deleted memory stops
+            // appearing in semantic search. Mirrors the consolidation flow.
+            try {
+                const remaining = await getEvents(avatarId, currentWorldTag, characterName, { limit: 2000 });
+                await purgeEventVectors(avatarId, currentWorldTag, characterName);
+                if (remaining.length) {
+                    await rebuildEventIndex(avatarId, currentWorldTag, characterName, remaining);
+                }
+            } catch (err) {
+                console.warn('[PAC] Vector cleanup after delete failed (non-critical):', err);
+            }
         }
         await loadEventLog();
+        // Refresh the live injected slot so the deleted memory leaves the prompt
+        // immediately — extension_prompts only update on generation/chat events otherwise.
+        await applyInjectionSettings().catch(() => {});
     } catch {
         toastr.error('Failed to delete event.');
     }
@@ -3115,6 +3145,7 @@ async function clearAllEvents() {
         }
         toastr.success('All events cleared.');
         await loadEventLog();
+        await applyInjectionSettings().catch(() => {});
     } catch {
         toastr.error('Failed to clear events.');
     }
@@ -3135,8 +3166,13 @@ async function rebuildVectorIndex() {
     $('#ms-rebuild-status').text('Loading events…');
     try {
         const events = await getEvents(avatarId, currentWorldTag, characterName, { limit: 2000 });
+        // Purge first so deleted/stale events don't survive as orphaned embeddings.
+        // Without this the "rebuild" only tops up — it can never remove a deleted memory.
+        $('#ms-rebuild-status').text('Purging stale index…');
+        await purgeEventVectors(avatarId, currentWorldTag, characterName);
         if (!events.length) {
-            $('#ms-rebuild-status').text('No events to index.');
+            $('#ms-rebuild-status').text('Index cleared — no events to re-index.');
+            toastr.success('Vector index cleared.');
             return;
         }
         $('#ms-rebuild-status').text(`Indexing ${events.length} event${events.length !== 1 ? 's' : ''}…`);
@@ -3227,6 +3263,7 @@ async function deleteSummaryEntry(index) {
             await deleteSummary(avatarId, currentWorldTag, characterName, index);
         }
         await loadSummaryList();
+        await applyInjectionSettings().catch(() => {});
     } catch {
         toastr.error('Failed to delete summary.');
     }
@@ -3247,6 +3284,7 @@ async function clearAllSummaries() {
         }
         toastr.success('All summaries cleared.');
         await loadSummaryList();
+        await applyInjectionSettings().catch(() => {});
     } catch {
         toastr.error('Failed to clear summaries.');
     }
